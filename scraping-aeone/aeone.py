@@ -61,6 +61,7 @@ def main():
     #log.info('Start selecting shipping location')
     #choose_location(BASE_URL)
     #log.info('Selected Ba Dinh in Hanoi')
+    log.info('Skip selecting shipping location')
     try:
         daily_task()
     except Exception as e:
