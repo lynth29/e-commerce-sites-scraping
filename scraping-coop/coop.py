@@ -20,6 +20,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import StaleElementReferenceException
 from selenium import webdriver
 from bs4 import BeautifulSoup
 from time import sleep
@@ -28,7 +30,7 @@ import signal
 
 # Parameters
 SITE_NAME = "coop"
-BASE_URL = "https://coopxtraonline.net"
+BASE_URL = "https://cooponline.vn"
 PROJECT_PATH = re.sub("/py$", "", os.getcwd())
 PATH_HTML = PROJECT_PATH + "/html/" + SITE_NAME + "/"
 PATH_CSV = PROJECT_PATH + "/csv/" + SITE_NAME + "/"
@@ -36,11 +38,12 @@ PATH_LOG = PROJECT_PATH + "/log/"
 DATE = str(datetime.date.today())
 OBSERVATION = 0
 CHROME_DRIVER = PROJECT_PATH + "/bin/chromedriver"
+IGNORED_EXCEPTIONS = (NoSuchElementException,StaleElementReferenceException)
 
 # Selenium options
 OPTIONS = Options()
 OPTIONS.add_argument("start-maximized")
-OPTIONS.add_argument('--headless')
+# OPTIONS.add_argument('--headless')
 OPTIONS.add_argument('--disable-gpu')
 BROWSER = webdriver.Chrome(executable_path=CHROME_DRIVER,
                                options=OPTIONS)
@@ -61,7 +64,9 @@ def main():
     # Select mart
     log.info('Start selecting mart')
     choose_mart(BASE_URL)
-    log.info('Selected mart in District 7')
+    log.info('Selected CoopXtra Mart in Tan Phong, District 7')
+    disable_sub()
+    log.info('Disable popup alert')
     try:
         daily_task()
     except Exception as e:
@@ -134,9 +139,15 @@ def choose_mart(url):
     wait = WebDriverWait(BROWSER, 10)
     sleep(1)
     mart = Select(BROWSER.find_element_by_xpath("//select"))
-    mart.select_by_index(1) # District 7
+    mart.select_by_index(7) # Tan Phong
     sleep(2)
     BROWSER.find_element_by_xpath("(//button)[2]").click()
+
+def disable_sub():
+    global BROWSER
+    wait = WebDriverWait(BROWSER, 20).until(EC.presence_of_element_located((By.ID, "onesignal-slidedown-dialog")))
+    sleep(2)
+    BROWSER.find_element_by_xpath("//button[contains(@class, 'align-right secondary')]").click()
 
 def get_category_list(top_html):
     """Get list of relative categories directories from the top page"""
@@ -147,28 +158,18 @@ def get_category_list(top_html):
     categories_bar = [categories_bar[1]]
     categories_tag = [cat.findAll('li') for cat in categories_bar]
     categories_tag = [item for sublist in categories_tag for item in sublist]
-    categories = [cat.find_all('a', {'class': 'main-menu'}) for cat in categories_tag]
+    categories = [cat.find_all('a') for cat in categories_tag]
     categories = [item for sublist in categories for item in sublist]
+    categories = categories[2:]
     for cat in categories:
         next_page = {}
-        link = re.sub(".+coopxtraonline\\.net", "", cat['href'])
+        link = re.sub(".+cooponline\\.vn", "", cat['href'])
         next_page['relativelink'] = link
         next_page['directlink'] = BASE_URL + link
         name = re.sub("/|\\?.=", "_", link)
         next_page['name'] = re.sub("_production","", name)
-        next_page['label'] = re.sub("\n                                                                                                            ","",cat.text)
+        next_page['label'] = re.sub("\n                                                                                                            |\n","",cat.text)
         page_list.append(next_page)
-    # Add 'Nhãn hàng Coop'
-    coop_prod = [cat.find_all('a', {'class': None}) for cat in categories_tag]
-    coop_prod = [item for sublist in coop_prod for item in sublist]
-    coop_prod = coop_prod[2]
-    coop_link = re.sub(".+coopxtraonline\\.net", "", coop_prod.get('href'))
-    next_page['relativelink'] = coop_link
-    next_page['directlink'] = coop_prod.get('href')
-    name_coop = re.sub("/|\\?.=", "_", coop_link)
-    next_page['name'] = re.sub("_production","", name_coop)
-    next_page['label'] = coop_prod.text
-    page_list.append(next_page)
     # Remove duplicates
     page_list = [dict(t) for t in set(tuple(i.items()) for i in page_list)]
     return(page_list)
@@ -177,65 +178,66 @@ def scrap_data(cat):
     """Get item data from a category page and write to csv"""
     global OBSERVATION
     soup = BeautifulSoup(BROWSER.page_source, 'lxml')
-    wait = WebDriverWait(BROWSER, 20)
-    cat_name = soup.find('h3', {'class':'title-category'}).text
-    if soup.find('span', {'class':'pages'}) == None:
-            page_count = 1
-    if soup.find('span', {'class':'pages'}) != None:
-            page_count = soup.find('span', class_='pages').text
-            page_count = page_count.split('trên ')[1]
-            page_count = page_count.strip()
-    log.info(cat_name + ' category has ' + str(page_count) + ' pages')
+    wait = WebDriverWait(BROWSER, 60)
     try:
-        i = 0
-        while i < int(page_count):
-            if i != 0:
-                try:
-                    element = BROWSER.find_element_by_xpath("//*[contains(@class, 'nextpostslink')]")
-                    BROWSER.execute_script("arguments[0].click();", element)
-                except NoSuchElementException:
-                    pass
-                soup = BeautifulSoup(BROWSER.page_source, 'lxml')
-                sleep(1)
-                list = soup.find_all('div', class_='product-item-container')
-                log.info('We are on ' + str(i+1) + ' page')
-            if i == 0:
-                soup = BeautifulSoup(BROWSER.page_source, 'lxml')
-                sleep(1)
-                list = soup.find_all('div', class_='product-item-container')
-                log.info('We are on ' + str(i+1) + ' page')
-            log.info('Found ' + str(len(list)) + ' products')
-            for item in list:
-                row = {}
-                if item.find('h4', {'class':'title_product_lmh'}) != None:
-                    good_name = item.find('h4', {'class':'title_product_lmh'}).text
-                    row['good_name'] = good_name
-                else:
-                    None
-                if item.find('span', class_='price-new') != None:
-                    price = item.find('span', class_='price-new').text.strip()
-                    price = price.split('đ')[0]
-                    price = price.strip()
-                    row['price'] = price
-                else:
-                    None
-                if item.find('span', class_='price-old') != None:
-                    old_price = item.find('span', class_='price-old').text.strip()
-                    old_price = old_price.split('đ')[0]
-                    old_price = old_price.strip()
-                    row['old_price'] = old_price
-                else:
-                    None
-                if item.find('a', {'target':'_self'}) != None:
-                    item_id = item.find('a', {'target':'_self'}).get('href')
-                    item_id = re.sub(".+products/|/","",item_id)
-                    row['id'] = item_id
-                row['category'] = cat['label']
-                row['date'] = DATE
-                OBSERVATION += 1
-                write_data(row)
-            log.info('Finished scraping ' + str(i+1) + ' page')
-            i += 1
+        wait.until(EC.presence_of_element_located((By.XPATH, "//div[contains(@class, 'product-image-container second_img')]")))
+        scrape_test = BROWSER.find_elements_by_xpath("//div[contains(@class, 'product-image-container second_img')]")
+        if scrape_test:
+            log.info("There are elements!")
+        else:
+            log.info("Cannnot find the elements!")
+    except TimeoutException:
+        log.info("Timeout!")
+        pass
+    cat_name = soup.find('h3', {'class':'title-category'}).text
+    while True:
+        try:
+            see_more = BROWSER.find_element_by_xpath("//button[contains(@class, 'btn-success')]")
+            BROWSER.execute_script("arguments[0].click();", see_more)
+        except IGNORED_EXCEPTIONS:
+            log.info('Clicked all see_more button as much as possible in ' + cat_name + ' category.')
+            break
+    try:
+        soup = BeautifulSoup(BROWSER.page_source, 'lxml')
+        sleep(10)
+        list = soup.find_all('div', {'class': 'product-item-container'})
+        log.info('Found ' + str(len(list)) + ' products')
+        directory = soup.find_all('span', {'property': 'name'})
+        if len(directory) != 1:
+            subdir = directory[1].text.strip()
+        else:
+            subdir = directory[0].text.strip()
+        for item in list:
+            row = {}
+            if item.find('h4', {'class':'title_product_lmh'}) != None:
+                good_name = item.find('h4', {'class':'title_product_lmh'}).text
+                row['good_name'] = good_name
+            else:
+                None
+            if item.find('span', class_='price-new') != None:
+                price = item.find('span', class_='price-new').text.strip()
+                price = price.split('đ')[0]
+                price = price.strip()
+                row['price'] = price
+            else:
+                None
+            if item.find('span', class_='price-old') != None:
+                old_price = item.find('span', class_='price-old').text.strip()
+                old_price = old_price.split('đ')[0]
+                old_price = old_price.strip()
+                row['old_price'] = old_price
+            else:
+                None
+            if item.find('a', {'target':'_self'}) != None:
+                item_id = item.find('a', {'target':'_self'}).get('href')
+                item_id = re.sub(".+products/|/","",item_id)
+                row['id'] = item_id
+            row['parent_category'] = subdir
+            row['category'] = cat['label']
+            row['date'] = DATE
+            OBSERVATION += 1
+            write_data(row)
+        log.info('Finished scraping ' + cat_name + ' category.')
     except Exception as e:
         log.error("Error on " + BROWSER.current_url)
         log.info(type(e).__name__ + str(e))
@@ -243,7 +245,7 @@ def scrap_data(cat):
 
 def write_data(item_data):
     """Write an item data as a row in csv. Create new file if needed"""
-    fieldnames = ['good_name', 'price', 'old_price', 'id', 'category', 'date']
+    fieldnames = ['good_name', 'price', 'old_price', 'id', 'parent_category', 'category', 'date']
     file_exists = os.path.isfile(PATH_CSV + SITE_NAME + "_" + DATE + ".csv")
     if not os.path.exists(PATH_CSV):
         os.makedirs(PATH_CSV)
