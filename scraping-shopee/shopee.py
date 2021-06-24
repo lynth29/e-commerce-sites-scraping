@@ -1,5 +1,4 @@
-#import essential libraries
-
+# Import essential libraries
 import sys
 import os
 import glob
@@ -13,19 +12,17 @@ import random
 import logging
 from rich.logging import RichHandler
 from rich.progress import track
-from bs4 import BeautifulSoup
-from selenium import webdriver
 import selenium.webdriver.support.ui as ui
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium import webdriver
+from bs4 import BeautifulSoup
 from time import sleep
-import pandas as pd
 import signal
 
-# Assign parameters
-
+# Parameters
 SITE_NAME = "shopeevn"
 BASE_URL = "https://shopee.vn"
 PROJECT_PATH = re.sub("/py$", "", os.getcwd())
@@ -40,15 +37,12 @@ CHROME_DRIVER = PROJECT_PATH + "/bin/chromedriver"
 OPTIONS = Options()
 # OPTIONS.add_argument("--headless")
 OPTIONS.add_argument("start-maximized")
-OPTIONS.add_argument("disable-infobars")
 OPTIONS.add_argument("--disable-extensions")
 OPTIONS.add_argument("--no-sandbox")
 OPTIONS.add_argument("--disable-dev-shm-usage")
 OPTIONS.add_argument('--headless')
 OPTIONS.add_argument('--disable-gpu')
 BROWSER = webdriver.Chrome(executable_path=CHROME_DRIVER,
-                               options=OPTIONS)
-browser = webdriver.Chrome(executable_path=CHROME_DRIVER,
                                options=OPTIONS)
 
 # Setting up logging
@@ -83,10 +77,6 @@ def daily_task():
     # Refresh date
     DATE = str(datetime.date.today())
     OBSERVATION = 0
-    # Initiate headless web browser
-    log.debug('Initialize browser')
-    BROWSER = webdriver.Chrome(executable_path=CHROME_DRIVER,
-                               options=OPTIONS)
     # Download topsite and get categories directories
     base_file_name = "All_cat_" + DATE + ".html"
     fetch_html(BASE_URL, base_file_name, PATH_HTML, attempts_limit=1000)
@@ -94,7 +84,9 @@ def daily_task():
     CATEGORIES_PAGES = listing
     log.info('Found ' + str(len(CATEGORIES_PAGES)) + ' categories')
     # Read each categories pages and scrape for data
-    for cat in track(CATEGORIES_PAGES, description = "[green]Scraping...", total = len(CATEGORIES_PAGES)):
+    for cat in track(CATEGORIES_PAGES,
+                     description = "[green]Scraping...",
+                     total = len(CATEGORIES_PAGES)):
         cat_file = "cat_" + cat['name'] + "_" + DATE + ".html"
         download = fetch_html(cat['directlink'], cat_file, PATH_HTML)
         if download:
@@ -227,7 +219,7 @@ def scrap_data(cat):
     global OBSERVATION
     soup = BeautifulSoup(BROWSER.page_source, 'lxml')
     page_count = 100
-
+    log.info('Shopee limited the number of scraped items to 1500 items per category.')
     try:
         i = 0
         while i < int(page_count):
@@ -286,7 +278,6 @@ def write_data(item_data):
         if not file_exists:
             writer.writeheader()
         writer.writerow(item_data)
-
 
 def compress_csv():
     """Compress downloaded .csv files"""
