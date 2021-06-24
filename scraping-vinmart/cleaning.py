@@ -60,10 +60,11 @@ log.info('Are there any null value?:')
 log.info(raw.isnull().any())
 
 # Convert dtypes
-raw.price = raw.price.str.replace('.','').astype(float)
-raw.old_price = raw.old_price.str.replace('.','').astype(float)
+raw.price = raw.price.str.replace('.','', regex=True).astype(float)
+raw.old_price = raw.old_price.str.replace('.','', regex=True).astype(float)
 raw.old_price = raw.old_price.fillna(0)
 raw.old_price = np.where(raw.old_price == 0, raw.price, raw.old_price)
+raw.date = str(datetime.date.today())
 raw.date = pd.to_datetime(raw.date)
 log.info('Have a look at the dtypes after converting:')
 log.info(raw.info())
