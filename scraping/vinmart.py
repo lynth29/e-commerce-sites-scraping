@@ -42,7 +42,7 @@ CHROME_DRIVER = os.path.join(PROJECT_PATH, "bin/chromedriver")
 # Selenium options
 OPTIONS = Options()
 OPTIONS.add_argument("start-maximized")
-# OPTIONS.add_argument('--headless')
+OPTIONS.add_argument('--headless')
 OPTIONS.add_argument('--disable-gpu')
 BROWSER = webdriver.Chrome(executable_path=CHROME_DRIVER,
                                options=OPTIONS)
