@@ -42,6 +42,7 @@ def main():
             vinmart.main()
         if INPUT == 'coop':
             coop.main()
+        os.chdir(PROJECT_PATH)
         log.info(f"Proceed to upload to Google Drive.")
         upload.main()
     except Exception as e:
