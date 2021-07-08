@@ -28,20 +28,23 @@ logging.basicConfig(
 log = logging.getLogger("rich")
 
 # UI
-log.info(f"Please choose a site to start scraping:")
+# log.info(f"Please choose a site to start scraping:")
+log.info("We will start scraping these sites.")
 for idx, site in enumerate(SITES_LIST, start=0):
     if site.startswith('.'):
         continue
     log.info(f"{idx}. {site}")
-INPUT = str(input("Chosen site: "))
+# INPUT = str(input("Chosen site: "))
 
 # Define main function
 def main():
     try:
-        if INPUT == 'vinmart':
-            vinmart.main()
-        if INPUT == 'coop':
-            coop.main()
+        # if INPUT == 'vinmart':
+        log.info("Start scraping vinmart.vn")
+        vinmart.main()
+        # if INPUT == 'coop':
+        log.info("Start scraping cooponline.vn")
+        coop.main()
         os.chdir(PROJECT_PATH)
         log.info(f"Proceed to upload to Google Drive.")
         upload.main()
