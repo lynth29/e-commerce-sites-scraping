@@ -10,6 +10,8 @@ import re
 import csv
 import random
 import logging
+import pandas as pd
+import numpy as np
 from pathlib import Path
 from rich.logging import RichHandler
 from rich.progress import track
@@ -42,7 +44,7 @@ CHROME_DRIVER = os.path.join(PROJECT_PATH, "bin/chromedriver")
 # Selenium options
 OPTIONS = Options()
 OPTIONS.add_argument("start-maximized")
-OPTIONS.add_argument('--headless')
+# OPTIONS.add_argument('--headless')
 OPTIONS.add_argument('--disable-gpu')
 BROWSER = webdriver.Chrome(executable_path=CHROME_DRIVER,
                                options=OPTIONS)
