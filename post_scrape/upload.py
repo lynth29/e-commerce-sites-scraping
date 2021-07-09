@@ -94,8 +94,8 @@ def main():
                             log.info(f"Uploaded {file_to_upload} to Google Drive.")
                             break
                     break
-            log.info('---'*20)
-            log.info('---'*20)
+            log.info('---'*13)
+            log.info('---'*13)
 
 def upload_file(filename, site, folder_id):
     file_metadata = {'name': filename,
