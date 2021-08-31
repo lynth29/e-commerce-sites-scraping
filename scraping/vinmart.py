@@ -44,6 +44,7 @@ CHROME_DRIVER = os.path.join(PROJECT_PATH, "bin/chromedriver")
 # Selenium options
 OPTIONS = Options()
 OPTIONS.add_argument("start-maximized")
+OPTIONS.add_argument("--no-sandbox")
 # OPTIONS.add_argument('--headless')
 OPTIONS.add_argument('--disable-gpu')
 BROWSER = webdriver.Chrome(executable_path=CHROME_DRIVER,
@@ -109,9 +110,11 @@ def daily_task():
 
 def choose_location(url):
     global BROWSER
+    BROWSER.maximize_window()
     BROWSER.get(url)
-    wait = WebDriverWait(BROWSER, 10)
-    sleep(1)
+    wait = WebDriverWait(BROWSER, 60).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(@title, 'Đóng')]")))
+    BROWSER.find_element_by_xpath("//button[contains(@title, 'Đóng')]").click()
+    sleep(2)
     city = Select(BROWSER.find_element_by_xpath("(//select)[1]"))
     city.select_by_index(1) # Hanoi
     sleep(2)
@@ -119,7 +122,7 @@ def choose_location(url):
     district.select_by_index(5) # Hai Ba Trung
     sleep(2)
     ward = Select(BROWSER.find_element_by_xpath("(//select)[3]"))
-    ward.select_by_index(1) # Cong Vi
+    ward.select_by_index(6) # Minh Khai
     BROWSER.find_element_by_xpath("//div[text()='Xác nhận']").click()
 
 def fetch_html(url, file_name, path, attempts_limit=5):
@@ -202,7 +205,7 @@ def scrap_data(cat):
     soup = BeautifulSoup(BROWSER.page_source, 'lxml')
     wait = ui.WebDriverWait(BROWSER, 20)
     page_count = soup.find_all('button', class_='v-pagination__item')
-    if len(page_count) == 1:
+    if len(page_count) == 0:
         page_count = 1
     else:
         page_count = page_count[-1].text
@@ -339,23 +342,31 @@ def cleaning_data():
     ## Date
     raw.date = str(datetime.date.today())
     raw.date = pd.to_datetime(raw.date)
+    log.info('Finished converting Date.')
     ## Price
-    if raw.price.str.contains('Đang cập nhật').any():
+    if raw.price.astype(str).str.contains('Đang cập nhật').any():
         raw.price = np.where(raw.price == 'Đang cập nhật', 0, raw.price)
-    if raw.price.str.contains('.').any():
-        raw.price = raw.price.str.replace('.','', regex=True)
-    if raw.price.str.contains(',').any():
-        raw.price = raw.price.str.replace(',','', regex=True)
+        log.info('Finished handling Đang cập nhật')
+    if raw.price.astype(str).str.contains('.').any():
+        raw.price = raw.price.astype(str).str.replace('.','', regex=True)
+        log.info('Finished handling . in price')
+    if raw.price.astype(str).str.contains(',').any():
+        raw.price = raw.price.astype(str).str.replace(',','', regex=True)
+        log.info('Finished handling , in price')
     raw.price = raw.price.astype(float)
     ## Old price
-    if raw.old_price.str.contains('.').any():
-        raw.old_price = raw.old_price.str.replace('.','', regex=True)
-    if raw.old_price.str.contains(',').any():
-        raw.old_price = raw.old_price.str.replace(',','', regex=True)
+    if raw.old_price.astype(str).str.contains('.').any():
+        raw.old_price = raw.old_price.astype(str).str.replace('.','', regex=True)
+        log.info('Finished handling . in old_price')
+    if raw.old_price.astype(str).str.contains(',').any():
+        raw.old_price = raw.old_price.astype(str).str.replace(',','', regex=True)
+        log.info('Finished handling , in old_price')
     raw.old_price = raw.old_price.astype(float)    ### Handle null values
+    log.info('Finished handling null values in old_price')
     if raw.old_price.isnull().any():
         raw.old_price = raw.old_price.fillna(0)
         raw.old_price = np.where(raw.old_price == 0, raw.price, raw.old_price)
+        log.info('Finished copy price to old_price')
     log.info('Have a look at the dtypes after converting:')
     log.info(raw.info())
     os.remove(SITE_NAME + '_' + DATE + '.csv')

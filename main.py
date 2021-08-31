@@ -9,8 +9,6 @@ from rich.logging import RichHandler
 from rich.progress import track
 
 # Import modules
-from scraping import vinmart
-from scraping import coop
 from post_scrape import upload
 
 # Define paths
@@ -41,9 +39,11 @@ def main():
     try:
         # if INPUT == 'vinmart':
         log.info("Start scraping vinmart.vn")
+        from scraping import vinmart
         vinmart.main()
         # if INPUT == 'coop':
         log.info("Start scraping cooponline.vn")
+        from scraping import coop
         coop.main()
         os.chdir(PROJECT_PATH)
         log.info(f"Proceed to upload to Google Drive.")

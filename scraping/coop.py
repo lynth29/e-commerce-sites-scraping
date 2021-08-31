@@ -48,6 +48,7 @@ IGNORED_EXCEPTIONS = (NoSuchElementException,StaleElementReferenceException)
 OPTIONS = Options()
 OPTIONS.add_argument("start-maximized")
 # OPTIONS.add_argument('--headless')
+OPTIONS.add_argument("--no-sandbox")
 OPTIONS.add_argument('--disable-gpu')
 BROWSER = webdriver.Chrome(executable_path=CHROME_DRIVER,
                                options=OPTIONS)
@@ -126,9 +127,12 @@ def choose_mart(url):
 
 def disable_sub():
     global BROWSER
-    wait = WebDriverWait(BROWSER, 20).until(EC.presence_of_element_located((By.ID, "onesignal-slidedown-dialog")))
-    sleep(2)
-    BROWSER.find_element_by_xpath("//button[contains(@class, 'align-right secondary')]").click()
+    try:
+        wait = WebDriverWait(BROWSER, 60).until(EC.presence_of_element_located((By.ID, "onesignal-slidedown-dialog")))
+        sleep(2)
+        BROWSER.find_element_by_xpath("//button[contains(@class, 'align-right secondary')]").click()
+    except TimeoutException:
+        pass
 
 def fetch_html(url, file_name, path, attempts_limit=5):
     """Fetch and download a html with provided path and file names"""
