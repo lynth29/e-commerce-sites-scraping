@@ -23,6 +23,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import TimeoutException
 from selenium import webdriver
 from bs4 import BeautifulSoup
 from time import sleep
@@ -112,8 +113,11 @@ def choose_location(url):
     global BROWSER
     BROWSER.maximize_window()
     BROWSER.get(url)
-    wait = WebDriverWait(BROWSER, 60).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(@title, 'Đóng')]")))
-    BROWSER.find_element_by_xpath("//button[contains(@title, 'Đóng')]").click()
+    try:
+        wait = WebDriverWait(BROWSER, 60).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(@title, 'Đóng')]")))
+        BROWSER.find_element_by_xpath("//button[contains(@title, 'Đóng')]").click()
+    except TimeoutException:
+        pass
     sleep(2)
     city = Select(BROWSER.find_element_by_xpath("(//select)[1]"))
     city.select_by_index(1) # Hanoi
@@ -347,22 +351,12 @@ def cleaning_data():
     if raw.price.astype(str).str.contains('Đang cập nhật').any():
         raw.price = np.where(raw.price == 'Đang cập nhật', 0, raw.price)
         log.info('Finished handling Đang cập nhật')
-    if raw.price.astype(str).str.contains('.').any():
-        raw.price = raw.price.astype(str).str.replace('.','', regex=True)
-        log.info('Finished handling . in price')
-    if raw.price.astype(str).str.contains(',').any():
-        raw.price = raw.price.astype(str).str.replace(',','', regex=True)
-        log.info('Finished handling , in price')
-    raw.price = raw.price.astype(float)
+    ## Multiple price with 1000
+    raw.price = raw.price * 1000
+    log.info('Finished handling float dot in price')
     ## Old price
-    if raw.old_price.astype(str).str.contains('.').any():
-        raw.old_price = raw.old_price.astype(str).str.replace('.','', regex=True)
-        log.info('Finished handling . in old_price')
-    if raw.old_price.astype(str).str.contains(',').any():
-        raw.old_price = raw.old_price.astype(str).str.replace(',','', regex=True)
-        log.info('Finished handling , in old_price')
-    raw.old_price = raw.old_price.astype(float)    ### Handle null values
-    log.info('Finished handling null values in old_price')
+    raw.old_price = raw.old_price * 1000
+    log.info('Finished handling float dot in old_price')
     if raw.old_price.isnull().any():
         raw.old_price = raw.old_price.fillna(0)
         raw.old_price = np.where(raw.old_price == 0, raw.price, raw.old_price)
