@@ -32,7 +32,7 @@ import signal
 
 # Parameters
 SITE_NAME = "vinmart"
-BASE_URL = "https://vinmart.com"
+BASE_URL = "https://winmart.vn"
 PROJECT_PATH = Path(__file__).absolute().parents[1]
 PATH_HTML = os.path.join(PROJECT_PATH, "html", SITE_NAME)
 PATH_CSV = os.path.join(PROJECT_PATH, "csv", SITE_NAME)
@@ -94,6 +94,7 @@ def daily_task():
     base_file_name = "All_cat_" + DATE + ".html"
     fetch_html(BASE_URL, base_file_name, PATH_HTML, attempts_limit=1000)
     html_file = open(PATH_HTML + '/' + base_file_name).read()
+    log.info('Start getting categories')
     CATEGORIES_PAGES = get_category_list(html_file)
     log.info('Found ' + str(len(CATEGORIES_PAGES)) + ' categories')
     # Read each categories pages and scrape for data
@@ -104,9 +105,9 @@ def daily_task():
         download = fetch_html(cat['directlink'], cat_file, PATH_HTML)
         scrap_data(cat)
     # Close browser
-    BROWSER.close()
-    BROWSER.service.process.send_signal(signal.SIGTERM)
-    BROWSER.quit()
+    # BROWSER.close()
+    # BROWSER.service.process.send_signal(signal.SIGTERM)
+    # BROWSER.quit()
 
 
 def choose_location(url):
@@ -114,20 +115,15 @@ def choose_location(url):
     BROWSER.maximize_window()
     BROWSER.get(url)
     try:
-        wait = WebDriverWait(BROWSER, 60).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(@title, 'Đóng')]")))
-        BROWSER.find_element_by_xpath("//button[contains(@title, 'Đóng')]").click()
+        wait = WebDriverWait(BROWSER, 60).until(EC.element_to_be_clickable((By.XPATH, "//span[contains(text(),'TP. Hà Nội')]")))
     except TimeoutException:
         pass
     sleep(2)
-    city = Select(BROWSER.find_element_by_xpath("(//select)[1]"))
-    city.select_by_index(1) # Hanoi
+    city = BROWSER.find_element_by_xpath("//span[contains(text(),'TP. Hà Nội')]").click() # Hà Nội
     sleep(2)
-    district = Select(BROWSER.find_element_by_xpath("(//select)[2]"))
-    district.select_by_index(5) # Hai Ba Trung
+    district = BROWSER.find_element_by_xpath("//span[contains(text(),'Q. Hai Bà Trưng')]").click() # Hai Bà Trưng
     sleep(2)
-    ward = Select(BROWSER.find_element_by_xpath("(//select)[3]"))
-    ward.select_by_index(6) # Minh Khai
-    BROWSER.find_element_by_xpath("//div[text()='Xác nhận']").click()
+    ward = BROWSER.find_element_by_xpath("//span[contains(text(),'P. Minh Khai')]").click() # Minh Khai
 
 def fetch_html(url, file_name, path, attempts_limit=5):
     """Fetch and download a html with provided path and file names"""
@@ -166,37 +162,18 @@ def multiple_replace(dict, text):
 def get_category_list(top_html):
     """Get list of relative categories directories from the top page"""
     page_list = []
+    BROWSER.get(BASE_URL)
+    sleep(5)
     toppage_soup = BeautifulSoup(BROWSER.page_source, "lxml")
-    categories_bar = [toppage_soup.findAll("div", {'class': 'menu-item'})]
+    categories_bar = [toppage_soup.findAll("a", {'class': 'menu-name'})]
     categories = [item for sublist in categories_bar for item in sublist]
-    ending = ['c11720',
-          'c11721',
-          'c11722',
-          'c11674',
-          'c11728',
-          'c11724',
-          'c11675',
-          'c11725',
-          'c14822',
-          'c11729',
-          'c14824',
-          'c14827']
-    pre = []
     for cat in categories:
-        dict = {
-        ' - ' : '---',
-        ' ' : '-',
-        '/' : '%2F',
-        }
-        a = multiple_replace(dict,cat.text)
-        pre.append(a)
-    for (x, y, z) in zip(pre, ending, categories):
         next_page = {}
-        link = '/' + x + '-' + y
+        link = cat.get('href')
         next_page['relativelink'] = link
         next_page['directlink'] = BASE_URL + link
-        next_page['name'] = re.sub(" - | ","_", z.text)
-        next_page['label'] = z.text
+        next_page['name'] = cat.text
+        next_page['label'] = cat.text
         page_list.append(next_page)
     # Remove duplicates
     return(page_list)
@@ -205,67 +182,66 @@ def scrap_data(cat):
     """Get item data from a category page and write to csv"""
     global OBSERVATION
     global BROWSER
-    BROWSER.get(cat['directlink'])
-    soup = BeautifulSoup(BROWSER.page_source, 'lxml')
-    wait = ui.WebDriverWait(BROWSER, 20)
-    page_count = soup.find_all('button', class_='v-pagination__item')
-    if len(page_count) == 0:
-        page_count = 1
-    else:
-        page_count = page_count[-1].text
-    log.info('This category has ' + str(page_count) + ' pages')
     try:
-        i = 0
-        while i < int(page_count):
-            if i != 0:
-                try:
-                    element = BROWSER.find_element_by_xpath("//i[text()='chevron_right']")
-                    BROWSER.execute_script("arguments[0].click();", element)
-                except NoSuchElementException:
-                    pass
-                wait
-                sleep(10)
-                soup = BeautifulSoup(BROWSER.page_source, 'lxml')
-                list = soup.find_all('div', {'data-content-name':'Listing - undefined'})
-                log.info('We are on ' + str(i+1) + ' page')
-            if i == 0:
-                soup = BeautifulSoup(BROWSER.page_source, 'lxml')
-                list = soup.find_all('div', {'data-content-name':'Listing - undefined'})
-                log.info('We are on ' + str(i+1) + ' page')
-            log.info('Found ' + str(len(list)) + ' products')
-            for item in list:
-                row = {}
-                if item.find('p', {'class':'product-name'}) != None:
-                    good_name = item.find('p', {'class':'product-name'}).text.strip()
-                    row['good_name'] = good_name
-                else:
-                    None
-                if item.find('span', class_='fs 16 font-weight-bold') != None:
-                    price = item.find('span', class_='fs 16 font-weight-bold').text.strip()
-                    price = price.split('đ')[0]
-                    price = price.strip()
-                    row['price'] = price
-                else:
-                    None
-                if item.find('span', class_='fs12') != None:
-                    old_price = item.find('span', class_='fs12').text.strip()
-                    old_price = old_price.split('đ')[0]
-                    old_price = old_price.strip()
-                    row['old_price'] = old_price
-                else:
-                    None
-                if item.find('a', {'class': ''}) != None:
-                    item_id = item.find('a', {'class': ''}).get('href').strip()
-                    item_id = item_id.split('--')
-                    item_id = item_id[len(item_id)-1]
-                    item_id = item_id.strip()
-                    row['id'] = item_id
-                row['category'] = cat['label']
-                row['date'] = DATE
-                OBSERVATION += 1
-                write_data(row)
-            log.info('Finished scraping ' + str(i+1) + ' page')
-            i += 1
+        # Get all products appeared by scrolling
+
+        BROWSER.get(cat['directlink'])
+
+        SCROLL_PAUSE_TIME = 5
+
+        # Get scroll height
+        last_height = BROWSER.execute_script("return document.body.scrollHeight")
+        while True:
+            # Scroll down to bottom
+            BROWSER.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+            # Wait to load page
+            sleep(SCROLL_PAUSE_TIME)
+            # Calculate new scroll height and compare with last scroll height
+            new_height = BROWSER.execute_script("return document.body.scrollHeight")
+            if new_height == last_height:
+                break
+            last_height = new_height
+
+        # Get all products
+        soup = BeautifulSoup(BROWSER.page_source, 'lxml')
+        list = soup.find_all('div', {'class':'product-card-two__Card-sc-1lvbgq2-0 cbXSsN product-card'})
+        log.info('Found ' + str(len(list)) + ' products')
+        for item in list:
+            row = {}
+            # Product name
+            if item.find('h2', {'class':'product-card-two__Title-sc-1lvbgq2-4 ifcsNx'}) != None:
+                good_name = item.find('h2', {'class':'product-card-two__Title-sc-1lvbgq2-4 ifcsNx'}).text.strip()
+                row['good_name'] = good_name
+            else:
+                None
+            # Price
+            if item.find('div', {'class':'product-card-two__Price-sc-1lvbgq2-6 cDiKnb'}) != None:
+                price = item.find('div', {'class':'product-card-two__Price-sc-1lvbgq2-6 cDiKnb'}).text.strip()
+                price = price.split('₫')[0]
+                price = price.strip()
+                row['price'] = price
+            else:
+                None
+            # Old price
+            if item.find('div', {'class':'product-card-two__SalePrice-sc-1lvbgq2-7 fEocCD'}) != None:
+                old_price = item.find('div', {'class':'product-card-two__SalePrice-sc-1lvbgq2-7 fEocCD'}).text.strip()
+                old_price = old_price.split('₫')[0]
+                old_price = old_price.strip()
+                row['old_price'] = old_price
+            else:
+                None
+            # Item_id
+            if item.find('a', {'class': ''}) != None:
+                item_id = item.find('a', {'class': ''}).get('href').strip()
+                item_id = item_id.split('--')
+                item_id = item_id[len(item_id)-1]
+                item_id = item_id.strip()
+                row['id'] = item_id
+            # Category
+            row['category'] = cat['label']
+            row['date'] = DATE
+            OBSERVATION += 1
+            write_data(row)
     except Exception as e:
         log.error("Error on " + BROWSER.current_url)
         log.info(type(e).__name__ + str(e))
