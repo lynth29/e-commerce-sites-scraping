@@ -191,6 +191,7 @@ def scrap_data(cat):
     global OBSERVATION
     soup = BeautifulSoup(BROWSER.page_source, 'lxml')
     wait = WebDriverWait(BROWSER, 60)
+    # Wait to load elements
     try:
         wait.until(EC.presence_of_element_located((By.XPATH, "//div[contains(@class, 'product-image-container second_img')]")))
         scrape_test = BROWSER.find_elements_by_xpath("//div[contains(@class, 'product-image-container second_img')]")
@@ -201,7 +202,23 @@ def scrap_data(cat):
     except TimeoutException:
         log.info("Timeout!")
         pass
-    cat_name = soup.find('h3', {'class':'title-category'}).text
+    # Get category name
+    cat_name = soup.find('h3', {'class':'title-category'})
+    attempts_limit = 5
+    if cat_name == None:
+        attempts = 0
+        while attempts < attempts_limit:
+            try:
+                cat_name = cat_name.text
+            except:
+                attempts += 1
+                log.warning("Try getting cat_name again")
+        else:
+            log.error(f"Cannot download get cat_name")
+            cat_name = ""
+    else:
+        cat_name = cat_name.text
+    # Click see_more button as many as possible
     while True:
         try:
             see_more = BROWSER.find_element_by_xpath("//button[contains(@class, 'btn-success')]")
@@ -209,23 +226,29 @@ def scrap_data(cat):
         except IGNORED_EXCEPTIONS:
             log.info('Clicked all see_more button as much as possible in ' + cat_name + ' category.')
             break
+    # Scraping product's data
     try:
         soup = BeautifulSoup(BROWSER.page_source, 'lxml')
         sleep(10)
+        # Get all products' holders
         list = soup.find_all('div', {'class': 'product-item-container'})
         log.info('Found ' + str(len(list)) + ' products')
+        # Get main category and sub-category
         directory = soup.find_all('span', {'property': 'name'})
         if len(directory) != 1:
             subdir = directory[1].text.strip()
         else:
             subdir = directory[0].text.strip()
+        # Scraping data
         for item in list:
             row = {}
+            # Name
             if item.find('h4', {'class':'title_product_lmh'}) != None:
                 good_name = item.find('h4', {'class':'title_product_lmh'}).text
                 row['good_name'] = good_name
             else:
                 None
+            # Price
             if item.find('span', class_='price-new') != None:
                 price = item.find('span', class_='price-new').text.strip()
                 price = price.split('đ')[0]
@@ -233,6 +256,7 @@ def scrap_data(cat):
                 row['price'] = price
             else:
                 None
+            # Old price
             if item.find('span', class_='price-old') != None:
                 old_price = item.find('span', class_='price-old').text.strip()
                 old_price = old_price.split('đ')[0]
@@ -240,12 +264,16 @@ def scrap_data(cat):
                 row['old_price'] = old_price
             else:
                 None
+            # ID
             if item.find('a', {'target':'_self'}) != None:
                 item_id = item.find('a', {'target':'_self'}).get('href')
                 item_id = re.sub(".+products/|/","",item_id)
                 row['id'] = item_id
+            # Sub category
             row['parent_category'] = subdir
+            # Category
             row['category'] = cat['label']
+            # Date
             row['date'] = DATE
             OBSERVATION += 1
             write_data(row)
@@ -339,11 +367,11 @@ def cleaning_data():
         raw.price = raw.price.str.replace(',','', regex=True)
     raw.price = raw.price.astype(float)
     ## Old price
-    if raw.old_price.str.contains('.').any():
-        raw.old_price = raw.old_price.str.replace('.','', regex=True)
-    if raw.old_price.str.contains(',').any():
-        raw.old_price = raw.old_price.str.replace(',','', regex=True)
-    raw.old_price = raw.old_price.astype(float)    ### Handle null values
+    # if raw.old_price.str.contains('.').any():
+    #     raw.old_price = raw.old_price.str.replace('.','', regex=True)
+    # if raw.old_price.str.contains(',').any():
+    #     raw.old_price = raw.old_price.str.replace(',','', regex=True)
+    # raw.old_price = raw.old_price.astype(float)    ### Handle null values
     if raw.old_price.isnull().any():
         raw.old_price = raw.old_price.fillna(0)
         raw.old_price = np.where(raw.old_price == 0, raw.price, raw.old_price)
