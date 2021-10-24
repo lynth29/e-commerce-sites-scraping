@@ -24,8 +24,7 @@ CREDENTIALS = 'credentials/credentials.json'
 TOKEN = 'token'
 API_NAME = 'drive'
 API_VERSION = 'v3'
-FOLDER_ID = {'coop':'1s1f0uJB2olE4GiKhebtgtiWBbA9HE2jv',
-             'vinmart':'1Ei4o9Fq7-_-6yPRIvTwt4emSA4TKOwoz'}
+FOLDER_ID = "put_your_folder_id_in_dictionary"
 PROJECT_PATH = Path(__file__).absolute().parents[1]
 os.chdir(PROJECT_PATH)
 CURRENT_MONTH = str(date.today().strftime("%m"))
