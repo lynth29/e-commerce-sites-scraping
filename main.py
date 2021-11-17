@@ -4,26 +4,14 @@
 import os
 import sys
 from pathlib import Path
-import logging
-from rich.logging import RichHandler
-from rich.progress import track
 
 # Import modules
+from helpers.daily_task import *
 from post_scrape import upload
 
 # Define paths
 PROJECT_PATH = os.getcwd()
-SITES_LIST = [f.name for f in os.scandir(PROJECT_PATH + '/html')]
-
-# Setting up logging
-logging.basicConfig(
-    level="INFO",
-    format="%(message)s",
-    datefmt="[%X]",
-    handlers=[RichHandler(rich_tracebacks=True)]
-)
-
-log = logging.getLogger("rich")
+SITES_LIST = [f.name for f in os.scandir(PROJECT_PATH + '/csv')]
 
 # UI
 # log.info(f"Please choose a site to start scraping:")
@@ -32,23 +20,20 @@ for idx, site in enumerate(SITES_LIST, start=0):
     if site.startswith('.'):
         continue
     log.info(f"{idx}. {site}")
-# INPUT = str(input("Chosen site: "))
 
 # Define main function
 def main():
     try:
-        # if INPUT == 'vinmart':
-        log.info("Start scraping vinmart.vn")
-        from scraping import vinmart
-        vinmart.main()
-        # if INPUT == 'coop':
-        log.info("Start scraping cooponline.vn")
-        from scraping import coop
-        coop.main()
+        # Scrape
+        run = Run()
+        for site in SITES_LIST:
+            run.daily_crawl(site)
+        # upload
         os.chdir(PROJECT_PATH)
         log.info(f"Proceed to upload to Google Drive.")
         upload.main()
     except Exception as e:
         log.info(type(e).__name__ + str(e))
+        
 if __name__ == "__main__":
     main()
