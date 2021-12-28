@@ -1,1 +1,16 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# output
+clean_csv/
+csv/
+
+# testing
+**/test.py
+
+# credentials
+**/credentials/
+**/token/
+
+# misc
 .DS_Store
+**/__pycache__/

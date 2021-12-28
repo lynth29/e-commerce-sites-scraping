@@ -43,10 +43,6 @@ class Run():
                              description = "[green]Scraping...",
                              total = len(CATEGORIES_PAGES)):
                 self.vin.scrap_data(cat) if site == "vinmart" else self.coop.scrap_data(cat)
-            # Close BROWSER
-            self.BROWSER.close()
-            self.BROWSER.service.process.send_signal(signal.SIGTERM)
-            self.BROWSER.quit()
         except Exception as e:
             log.exception('Got exception, scraper stopped')
             log.info(type(e).__name__ + str(e))

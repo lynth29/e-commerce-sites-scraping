@@ -34,6 +34,6 @@ def main():
         upload.main()
     except Exception as e:
         log.info(type(e).__name__ + str(e))
-        
+
 if __name__ == "__main__":
     main()

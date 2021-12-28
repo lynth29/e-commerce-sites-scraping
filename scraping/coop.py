@@ -50,7 +50,7 @@ class Coop:
         """Choose shopping location on cooponline.vn"""
         # Access url
         self.BROWSER.get(self.BASE_URL)
-        sleep(1)
+        sleep(2)
         # Choose mart
         mart = Select(self.BROWSER.find_element_by_xpath("(//select)[2]"))
         mart.select_by_index(1) # Tan Phong
@@ -198,10 +198,10 @@ class Coop:
             log.info(type(e).__name__ + str(e))
             pass
 
-    def cleaning_data():
+    def cleaning_data(self):
         # Import CSV file
         os.chdir(PATH_CSV)
-        raw = pd.read_csv(SITE_NAME + '_' + sDATE + '.csv')
+        raw = pd.read_csv(SITE_NAME + '_' + self.DATE + '.csv')
         log.info('Imported CSV file to a dataframe')
 
         # Summarize the dataframe
@@ -229,10 +229,10 @@ class Coop:
             raw.old_price = np.where(raw.old_price == 0, raw.price, raw.old_price)
         log.info('Have a look at the dtypes after converting:')
         log.info(raw.info())
-        os.remove(SITE_NAME + '_' + DATE + '.csv')
+        os.remove(SITE_NAME + '_' + self.DATE + '.csv')
 
         # Export to new CSV
         os.chdir(PROJECT_PATH)
         os.chdir(CLEAN_CSV)
-        raw.to_csv(SITE_NAME + '_' + DATE + '_clean.csv')
+        raw.to_csv(SITE_NAME + '_' + self.DATE + '_clean.csv')
         log.info('Finished cleaning data')
