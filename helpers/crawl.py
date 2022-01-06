@@ -2,11 +2,20 @@
 # -*- coding: utf-8 -*-
 
 # Import libraries
-## Work with files and folders
+# Work with files and folders
 import os
 from pathlib import Path
+# Work with time
+import time
+import datetime
+from time import sleep
+# Handle data
+import re
+import random
+import pandas as pd
+import numpy as np
 
-## Crawl
+# Crawl
 from selenium import webdriver
 from seleniumrequests.request import RequestMixin
 from bs4 import BeautifulSoup
@@ -15,7 +24,7 @@ from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 from urllib.request import urlopen
 
-## Handle selenium exeptions
+# Handle selenium exeptions
 import selenium.webdriver.support.ui as ui
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
@@ -23,11 +32,12 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 from selenium.common.exceptions import SessionNotCreatedException, TimeoutException, NoSuchElementException, StaleElementReferenceException
-IGNORED_EXCEPTIONS = (NoSuchElementException,StaleElementReferenceException)
+IGNORED_EXCEPTIONS = (NoSuchElementException, StaleElementReferenceException)
 
 # Parameters
 PROJECT_PATH = Path(__file__).absolute().parents[1]
 CHROME_DRIVER = os.path.join(PROJECT_PATH, "bin/chromedriver")
+
 
 class ChromeDriver:
 
@@ -50,6 +60,6 @@ class ChromeDriver:
         op.add_argument("--enable-javascript")
 
         # Create a driver based on chromedriver exe file and options
-        driver = webdriver.Chrome(executable_path=CHROME_DRIVER,options=op)
-	    # Must use appropriate chromedriver version with Chrome version (89.0 vs 89.0)
+        driver = webdriver.Chrome(executable_path=CHROME_DRIVER, options=op)
+        # Must use appropriate chromedriver version with Chrome version (89.0 vs 89.0)
         return driver
