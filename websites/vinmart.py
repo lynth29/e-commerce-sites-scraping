@@ -8,17 +8,18 @@ import os
 sys.path.append('.')
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
+# Import modules
+from helpers.read import *
+from helpers.write import *
+from helpers.logging import *
+from helpers.crawl import *
+
 # Parameters
 SITE_NAME = "vinmart"
 PATH_CSV = os.path.join(PROJECT_PATH, "csv", SITE_NAME)
 PATH_LOG = os.path.join(PROJECT_PATH, "log")
 CLEAN_CSV = os.path.join(PROJECT_PATH, "clean_csv", SITE_NAME)
 
-# Import modules
-from helpers.read import *
-from helpers.write import *
-from helpers.logging import *
-from helpers.crawl import *
 
 # Define class
 class Vinmart:
