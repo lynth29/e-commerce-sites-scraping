@@ -30,6 +30,8 @@ class Coop:
         self.BASE_URL = "https://cooponline.vn"
         self.DATE = str(datetime.date.today())
         self.OBSERVATION = 0
+        # Define wait
+        self.wait = WebDriverWait(self.BROWSER, 10)
         # Scroll options
         self.SCROLL_PAUSE_TIME = 5
         # Classes
@@ -45,14 +47,13 @@ class Coop:
         mart.select_by_index(1)  # Tan Phong
         sleep(2)
         # Click button
-        self.BROWSER.find_element_by_xpath("(//button)[2]").click()
+        self.BROWSER.find_element_by_xpath("//button[contains(text(), 'Chọn')]").click()
 
     def disable_sub(self):
         """Disable subscription popup"""
         try:
-            wait = WebDriverWait(self.BROWSER, 60).until(
+            self.wait.until(
                 EC.presence_of_element_located((By.ID, "onesignal-slidedown-dialog")))
-            sleep(2)
             self.BROWSER.find_element_by_xpath(
                 "//button[contains(@class, 'align-right secondary')]").click()
         except TimeoutException:
@@ -96,21 +97,6 @@ class Coop:
         """Get item data from a category page and self.write to csv"""
         # Access
         self.BROWSER.get(cat['directlink'])
-        # Get all products appeared by scrolling
-        # Wait to load elements
-        wait = WebDriverWait(self.BROWSER, 60)
-        try:
-            wait.until(EC.presence_of_element_located(
-                (By.XPATH, "//div[contains(@class, 'product-image-container second_img')]")))
-            scrape_test = self.BROWSER.find_elements_by_xpath(
-                "//div[contains(@class, 'product-image-container second_img')]")
-            if scrape_test:
-                log.info("There are elements!")
-            else:
-                log.info("Cannnot find the elements!")
-        except TimeoutException:
-            log.info("Timeout!")
-            pass
         # Get soup
         soup = BeautifulSoup(self.BROWSER.page_source, 'lxml')
         # Get category name
@@ -132,9 +118,12 @@ class Coop:
         # Click see_more button as many as possible
         while True:
             try:
+                # Wait
+                self.wait.until(
+                    EC.presence_of_element_located((By.XPATH, "//button[contains(@class, 'btn-success')]")))
                 see_more = self.BROWSER.find_element_by_xpath(
                     "//button[contains(@class, 'btn-success')]")
-                self.BROWSER.execute_script("arguments[0].click();", see_more)
+                see_more.click()
             except IGNORED_EXCEPTIONS:
                 log.info(
                     'Clicked all see_more button as much as possible in ' + cat_name + ' category.')

@@ -30,6 +30,7 @@ class Vinmart:
         self.BASE_URL = "https://winmart.vn"
         self.DATE = str(datetime.date.today())
         self.OBSERVATION = 0
+        self.wait = WebDriverWait(self.BROWSER, 10)
         # Scroll options
         self.SCROLL_PAUSE_TIME = 5
         # Classes
@@ -40,11 +41,10 @@ class Vinmart:
         # Access url
         self.BROWSER.get(self.BASE_URL)
         try:
-            wait = WebDriverWait(self.BROWSER, 60).until(EC.element_to_be_clickable(
+            self.wait.until(EC.element_to_be_clickable(
                 (By.XPATH, "//span[contains(text(),'TP. Hà Nội')]")))
         except TimeoutException:
             pass
-        sleep(2)
         # Choose city
         city = self.BROWSER.find_element_by_xpath(
             "//span[contains(text(),'TP. Hà Nội')]").click()  # Hà Nội
