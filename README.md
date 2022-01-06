@@ -6,7 +6,7 @@
 2. [VinMart](https://vinmart.com/)
 
 ### _Note_:
-`credentials.json` is associated with my email address so please use your own credentials to be able to upload the file to your Google Drive.
+`credentials.json` is associated with personal email address so please use your own credentials to be able to upload the file to your Google Drive.
 
 1. Enable **Google Drive API** in Google Cloud Console.
 2. Go to **Credentials** to create your own credentials.
