@@ -32,8 +32,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
-from selenium.common.exceptions import SessionNotCreatedException, TimeoutException, NoSuchElementException, StaleElementReferenceException
-IGNORED_EXCEPTIONS = (NoSuchElementException, StaleElementReferenceException, TimeoutException)
+from selenium.common.exceptions import SessionNotCreatedException, TimeoutException, NoSuchElementException, StaleElementReferenceException, ElementClickInterceptedException
+IGNORED_EXCEPTIONS = (NoSuchElementException, StaleElementReferenceException, TimeoutException, ElementClickInterceptedException)
 
 # Parameters
 PROJECT_PATH = Path(__file__).absolute().parents[1]
