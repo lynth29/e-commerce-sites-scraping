@@ -151,7 +151,7 @@ class Vinmart:
             log.info(type(e).__name__ + str(e))
             pass
 
-    def cleaning_data():
+    def cleaning_data(self):
         """Clean scraped data from winmart.vn"""
         # Import CSV file
         os.chdir(PATH_CSV)
