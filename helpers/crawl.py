@@ -5,6 +5,7 @@
 # Work with files and folders
 import os
 from pathlib import Path
+import platform
 # Work with time
 import time
 import datetime
@@ -36,7 +37,7 @@ IGNORED_EXCEPTIONS = (NoSuchElementException, StaleElementReferenceException)
 
 # Parameters
 PROJECT_PATH = Path(__file__).absolute().parents[1]
-CHROME_DRIVER = os.path.join(PROJECT_PATH, "bin/chromedriver")
+CHROME_DRIVER = os.path.join(PROJECT_PATH, "bin")
 
 
 class ChromeDriver:
@@ -60,6 +61,7 @@ class ChromeDriver:
         op.add_argument("--enable-javascript")
 
         # Create a driver based on chromedriver exe file and options
-        driver = webdriver.Chrome(executable_path=CHROME_DRIVER, options=op)
+        if platform.machine() == "arm64":
+            driver = webdriver.Chrome(executable_path="{}/chromedriver_mac64_m1".format(CHROME_DRIVER), options=op)
         # Must use appropriate chromedriver version with Chrome version (89.0 vs 89.0)
         return driver
