@@ -14,8 +14,8 @@ from helpers.crawl import *
 from helpers.logging import *
 from helpers.write import *
 from helpers.read import *
-from scraping.vinmart import *
-from scraping.coop import *
+from websites.vinmart import *
+from websites.coop import *
 
 class Run():
 
