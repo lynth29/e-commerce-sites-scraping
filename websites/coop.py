@@ -48,6 +48,7 @@ class Coop:
         sleep(2)
         # Click button
         self.BROWSER.find_element_by_xpath("//button[contains(text(), 'Chọn')]").click()
+        sleep(2)
 
     def disable_sub(self):
         """Disable subscription popup"""
