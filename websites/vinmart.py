@@ -11,13 +11,11 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 # Import modules
 from helpers.read import *
 from helpers.write import *
-from helpers.logging import *
 from helpers.crawl import *
 
 # Parameters
 SITE_NAME = "vinmart"
 PATH_CSV = os.path.join(PROJECT_PATH, "csv", SITE_NAME)
-PATH_LOG = os.path.join(PROJECT_PATH, "log")
 CLEAN_CSV = os.path.join(PROJECT_PATH, "clean_csv", SITE_NAME)
 
 
@@ -46,16 +44,13 @@ class Vinmart:
         except TimeoutException:
             pass
         # Choose city
-        city = self.BROWSER.find_element_by_xpath(
-            "//span[contains(text(),'TP. Hà Nội')]").click()  # Hà Nội
+        city = self.BROWSER.find_element(By.XPATH, "//span[contains(text(),'TP. Hà Nội')]").click()  # Hà Nội
         sleep(2)
         # Choose district
-        district = self.BROWSER.find_element_by_xpath(
-            "//span[contains(text(),'Q. Hai Bà Trưng')]").click()  # Hai Bà Trưng
+        district = self.BROWSER.find_element(By.XPATH, "//span[contains(text(),'Q. Hai Bà Trưng')]").click()  # Hai Bà Trưng
         sleep(2)
         # Choose ward
-        ward = self.BROWSER.find_element_by_xpath(
-            "//span[contains(text(),'P. Minh Khai')]").click()  # Minh Khai
+        ward = self.BROWSER.find_element(By.XPATH, "//span[contains(text(),'P. Minh Khai')]").click()  # Minh Khai
 
     def get_category_list(self):
         """Get list of relative categories directories from winmart.vn"""
@@ -105,7 +100,7 @@ class Vinmart:
             soup = BeautifulSoup(self.BROWSER.page_source, 'lxml')
             list = soup.find_all(
                 'div', {'class': 'product-card-two__Card-sc-1lvbgq2-0 EvJvz product-card'})
-            log.info('Found ' + str(len(list)) + ' products')
+            print('Found ' + str(len(list)) + ' products')
             for item in list:
                 row = {}
                 # Product name
@@ -147,8 +142,8 @@ class Vinmart:
                 self.OBSERVATION += 1
                 self.wr.write_data(row)
         except Exception as e:
-            log.error("Error on " + self.BROWSER.current_url)
-            log.info(type(e).__name__ + str(e))
+            print("Error on " + self.BROWSER.current_url)
+            print(type(e).__name__ + str(e))
             pass
 
     def cleaning_data(self):
@@ -156,42 +151,42 @@ class Vinmart:
         # Import CSV file
         os.chdir(PATH_CSV)
         raw = pd.read_csv(SITE_NAME + '_' + self.DATE + '.csv')
-        log.info('Imported CSV file to a dataframe')
+        print('Imported CSV file to a dataframe')
 
         # Summarize the dataframe
-        log.info(
+        print(
             f"The dataframe has {raw.shape[0]} rows and {raw.shape[1]} columns.")
-        log.info('Have a look at the dtypes:')
-        log.info(raw.info())
-        log.info('Are there any null value?:')
-        log.info(raw.isnull().any())
+        print('Have a look at the dtypes:')
+        print(raw.info())
+        print('Are there any null value?:')
+        print(raw.isnull().any())
 
         # Convert dtypes
         # Date
         raw.date = self.DATE
         raw.date = pd.to_datetime(raw.date)
-        log.info('Finished converting Date.')
+        print('Finished converting Date.')
         # Price
         if raw.price.astype(str).str.contains('Đang cập nhật').any():
             raw.price = np.where(raw.price == 'Đang cập nhật', 0, raw.price)
-            log.info('Finished handling Đang cập nhật')
+            print('Finished handling Đang cập nhật')
         # Multiple price with 1000
         raw.price = raw.price * 1000
-        log.info('Finished handling float dot in price')
+        print('Finished handling float dot in price')
         # Old price
         raw.old_price = raw.old_price * 1000
-        log.info('Finished handling float dot in old_price')
+        print('Finished handling float dot in old_price')
         if raw.old_price.isnull().any():
             raw.old_price = raw.old_price.fillna(0)
             raw.old_price = np.where(
                 raw.old_price == 0, raw.price, raw.old_price)
-            log.info('Finished copy price to old_price')
-        log.info('Have a look at the dtypes after converting:')
-        log.info(raw.info())
+            print('Finished copy price to old_price')
+        print('Have a look at the dtypes after converting:')
+        print(raw.info())
         os.remove(SITE_NAME + '_' + self.DATE + '.csv')
 
         # Export to new CSV
         os.chdir(PROJECT_PATH)
         os.chdir(CLEAN_CSV)
         raw.to_csv(SITE_NAME + '_' + self.DATE + '_hn_clean.csv')
-        log.info('Finished cleaning data')
+        print('Finished cleaning data')

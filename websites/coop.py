@@ -11,13 +11,11 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 # Import modules
 from helpers.read import *
 from helpers.write import *
-from helpers.logging import *
 from helpers.crawl import *
 
 # Parameters
 SITE_NAME = "coop"
 PATH_CSV = os.path.join(PROJECT_PATH, "csv", SITE_NAME)
-PATH_LOG = os.path.join(PROJECT_PATH, "log")
 CLEAN_CSV = os.path.join(PROJECT_PATH, "clean_csv", SITE_NAME)
 
 
@@ -55,8 +53,7 @@ class Coop:
         try:
             self.wait.until(
                 EC.presence_of_element_located((By.ID, "onesignal-slidedown-dialog")))
-            self.BROWSER.find_element_by_xpath(
-                "//button[contains(@class, 'align-right secondary')]").click()
+            self.BROWSER.find_element(By.XPATH,     "//button[contains(@class, 'align-right secondary')]").click()
         except TimeoutException:
             pass
 
@@ -110,9 +107,9 @@ class Coop:
                     cat_name = cat_name.text
                 except:
                     attempts += 1
-                    log.warning("Try getting cat_name again")
+                    print("Try getting cat_name again")
             else:
-                log.error(f"Cannot download get cat_name")
+                print(f"Cannot download get cat_name")
                 cat_name = ""
         else:
             cat_name = cat_name.text
@@ -122,11 +119,10 @@ class Coop:
                 # Wait
                 self.wait.until(
                     EC.presence_of_element_located((By.XPATH, "//button[contains(@class, 'btn-success')]")))
-                see_more = self.BROWSER.find_element_by_xpath(
-                    "//button[contains(@class, 'btn-success')]")
+                see_more = self.BROWSER.find_element(By.XPATH, "//button[contains(@class, 'btn-success')]")
                 see_more.click()
             except IGNORED_EXCEPTIONS:
-                log.info(
+                print(
                     'Clicked all see_more button as much as possible in ' + cat_name + ' category.')
                 break
         # Scraping product's data
@@ -135,7 +131,7 @@ class Coop:
             sleep(10)
             # Get all products' holders
             list = soup.find_all('div', {'class': 'product-item-container'})
-            log.info('Found ' + str(len(list)) + ' products')
+            print('Found ' + str(len(list)) + ' products')
             # Get main category and sub-category
             directory = soup.find_all('span', {'property': 'name'})
             if len(directory) != 1:
@@ -182,25 +178,25 @@ class Coop:
                 row['date'] = self.DATE
                 self.OBSERVATION += 1
                 self.wr.write_data(row)
-            log.info('Finished scraping ' + cat_name + ' category.')
+            print('Finished scraping ' + cat_name + ' category.')
         except Exception as e:
-            log.error("Error on " + self.BROWSER.current_url)
-            log.info(type(e).__name__ + str(e))
+            print("Error on " + self.BROWSER.current_url)
+            print(type(e).__name__ + str(e))
             pass
 
     def cleaning_data(self):
         # Import CSV file
         os.chdir(PATH_CSV)
         raw = pd.read_csv(SITE_NAME + '_' + self.DATE + '.csv')
-        log.info('Imported CSV file to a dataframe')
+        print('Imported CSV file to a dataframe')
 
         # Summarize the dataframe
-        log.info(
+        print(
             f"The dataframe has {raw.shape[0]} rows and {raw.shape[1]} columns.")
-        log.info('Have a look at the dtypes:')
-        log.info(raw.info())
-        log.info('Are there any null value?:')
-        log.info(raw.isnull().any())
+        print('Have a look at the dtypes:')
+        print(raw.info())
+        print('Are there any null value?:')
+        print(raw.isnull().any())
 
         # Convert dtypes
         # Date
@@ -219,12 +215,12 @@ class Coop:
             raw.old_price = raw.old_price.fillna(0)
             raw.old_price = np.where(
                 raw.old_price == 0, raw.price, raw.old_price)
-        log.info('Have a look at the dtypes after converting:')
-        log.info(raw.info())
+        print('Have a look at the dtypes after converting:')
+        print(raw.info())
         os.remove(SITE_NAME + '_' + self.DATE + '.csv')
 
         # Export to new CSV
         os.chdir(PROJECT_PATH)
         os.chdir(CLEAN_CSV)
         raw.to_csv(SITE_NAME + '_' + self.DATE + '_clean.csv')
-        log.info('Finished cleaning data')
+        print('Finished cleaning data')
