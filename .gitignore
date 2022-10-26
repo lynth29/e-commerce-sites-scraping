@@ -6,6 +6,7 @@ csv/
 
 # testing
 **/test.py
+**/Untitled**
 
 # credentials
 **/credentials/
@@ -14,3 +15,4 @@ csv/
 # misc
 .DS_Store
 **/__pycache__/
+**/.ipynb_checkpoints/
