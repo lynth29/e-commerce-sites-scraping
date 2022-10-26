@@ -5,7 +5,6 @@
 # Work with files and folders
 import os
 from pathlib import Path
-import platform
 # Work with time
 import time
 import datetime
