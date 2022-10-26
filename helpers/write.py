@@ -13,10 +13,6 @@ sys.path.append('.')
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 ## Write to data
 import csv
-import pandas as pd
-
-# Import logging
-from helpers.logging import *
 
 # Parameters
 PROJECT_PATH = Path(__file__).absolute().parents[1]
@@ -35,10 +31,10 @@ class CSV_write:
 
     def write_data(self, item_data):
         """Write an item data as a row in csv. Create new file if needed"""
-        file_exists = os.path.isfile(self.PATH_CSV + '/' + self.SITE_NAME + "_" + self.DATE + ".csv")
+        file_exists = os.path.isfile(os.path.join(self.PATH_CSV, self.SITE_NAME + "_" + self.DATE + ".csv"))
         if not os.path.exists(self.PATH_CSV):
             os.makedirs(self.PATH_CSV)
-        with open(self.PATH_CSV + '/' + self.SITE_NAME + "_" + self.DATE + ".csv", "a") as f:
+        with open(os.path.join(self.PATH_CSV, self.SITE_NAME + "_" + self.DATE + ".csv"), "a") as f:
             writer = csv.DictWriter(f, self.fieldnames)
             if not file_exists:
                 writer.writeheader()
@@ -55,6 +51,6 @@ class CSV_write:
                 zip_csv.write(file)
                 os.remove(file)
         except Exception as e:
-            log.error('Error when compressing csv')
-            log.info(type(e).__name__ + str(e))
+            print('Error when compressing csv')
+            print(type(e).__name__ + str(e))
         os.chdir(PROJECT_PATH)

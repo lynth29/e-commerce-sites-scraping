@@ -11,10 +11,7 @@ import datetime
 sys.path.append('.')
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-## Import logging
-from helpers.logging import *
-
-# Parameters\
+# Parameters
 PROJECT_PATH = Path(__file__).absolute().parents[1]
 
 # Define classes
@@ -36,6 +33,6 @@ class CSV_read:
             with ZipFile(self.SITE_NAME + '_' + self.DATE + '_csv.zip', 'a') as zip_csv:
                 zip_csv.extractall(self.PATH_CSV)
         except Exception as e:
-            log.error('Error when compressing csv')
-            log.info(type(e).__name__ + str(e))
+            print('Error when compressing csv')
+            print(type(e).__name__ + str(e))
         os.chdir(PROJECT_PATH)
