@@ -18,12 +18,10 @@ import numpy as np
 
 # Crawl
 from selenium import webdriver
-from seleniumrequests.request import RequestMixin
+from selenium.webdriver.chrome.service import Service as ChromeService
+from webdriver_manager.chrome import ChromeDriverManager
 from bs4 import BeautifulSoup
 import requests
-from requests.adapters import HTTPAdapter
-from requests.packages.urllib3.util.retry import Retry
-from urllib.request import urlopen
 
 # Handle selenium exeptions
 import selenium.webdriver.support.ui as ui
@@ -37,9 +35,6 @@ IGNORED_EXCEPTIONS = (NoSuchElementException, StaleElementReferenceException, Ti
 
 # Parameters
 PROJECT_PATH = Path(__file__).absolute().parents[1]
-CHROME_DRIVER = os.path.join(PROJECT_PATH, "bin")
-
-
 class ChromeDriver:
 
     def normal_driver(self):
@@ -48,19 +43,19 @@ class ChromeDriver:
         """
 
         op = webdriver.ChromeOptions()
-        # Show chromnium browser or not
-        # op.add_argument('--headless')
-        # Set window size to maximium when using headless to avoid losing or not showing up elements
-        op.add_argument("--window-size=1920,1080")
-        # 6 arguments to optimize speed when loading
+        # Run browser in headless mode
+        op.add_argument('--headless')
         op.add_argument('--no-sandbox')
-        op.add_argument("--disable-infobars")
-        op.add_argument("--disable-extensions")
-        op.add_argument("--disable-gpu")
+        # Set window size to maximized mode
+        op.add_argument("--start-maximized")
+        # Overcome limited resource problems
         op.add_argument("--disable-dev-shm-usage")
+        op.add_argument("--disable-gpu")
+        # Disable infobars
+        op.add_argument("--disable-infobars")
+        # Disable extensions
+        op.add_argument("--disable-extensions")
 
-        # Create a driver based on chromedriver exe file and options
-        if platform.machine() == "arm64":
-            driver = webdriver.Chrome(executable_path="{}/chromedriver_mac64_m1".format(CHROME_DRIVER), options=op)
-        # Must use appropriate chromedriver version with Chrome version (89.0 vs 89.0)
+        # Create driver 
+        driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=op)
         return driver
