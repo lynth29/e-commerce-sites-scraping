@@ -92,24 +92,19 @@ class BachHoaXanh:
                     'Clicked all see_more button as much as possible in ' + cat_name + ' category.')
                 break
         # Scraping product's data
-        try:
-            soup = BeautifulSoup(self.BROWSER.page_source, 'lxml')
-            # Get all products' holders
-            products = soup.find('ul', class_='cate')
-            list = products.find_all('li')[:-1]
-            print('Found ' + str(len(list)) + ' products')
-            # Scraping data
-            for item in list:
-                row = {}
-                row['cat_l1'] = cat['cat_l1']
-                row['cat_l2'] = cat['cat_l2']
-                row['cat_l3'] = cat['cat_l3']
-                # Name
-                row['product_name'] = item.find('h3').text.strip() if item.find('h3') != None else None
-                self.OBSERVATION += 1
-                self.wr.write_data(row)
-            print('Finished scraping ' + cat_name + ' category.')
-        except Exception as e:
-            print("Error on " + self.BROWSER.current_url)
-            print(type(e).__name__ + str(e))
-            pass
+        soup = BeautifulSoup(self.BROWSER.page_source, 'lxml')
+        # Get all products' holders
+        products = soup.find('ul', class_='cate')
+        list = products.find_all('li')[:-1]
+        print('Found ' + str(len(list)) + ' products')
+        # Scraping data
+        for item in list:
+            row = {}
+            row['cat_l1'] = cat['cat_l1']
+            row['cat_l2'] = cat['cat_l2']
+            row['cat_l3'] = cat['cat_l3']
+            # Name
+            row['product_name'] = item.find('h3').text.strip() if item.find('h3') != None else None
+            self.OBSERVATION += 1
+            self.wr.write_data(row)
+        print('Finished scraping ' + cat_name + ' category.')
