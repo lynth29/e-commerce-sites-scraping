@@ -10,7 +10,6 @@ dependencies:
   - protobuf
   - python
   - requests
-  - rich
   - pip:
     - google_api_python_client
     - google_auth_oauthlib
