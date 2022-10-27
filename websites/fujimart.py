@@ -18,7 +18,7 @@ SITE_NAME = "fujimart"
 PATH_CSV = os.path.join(PROJECT_PATH, "csv", SITE_NAME)
 
 # Define class
-class BachHoaXanh:
+class FujiMart:
 
     def __init__(self, driver):
         # Parameters

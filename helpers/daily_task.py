@@ -17,6 +17,7 @@ from helpers.read import *
 from websites.vinmart import *
 from websites.coop import *
 from websites.bachhoaxanh import *
+from websites.fujimart import *
 
 class Run():
 
@@ -27,6 +28,7 @@ class Run():
         self.vin = Vinmart(self.driver)
         self.coop = Coop(self.driver)
         self.bachhoaxanh = BachHoaXanh(self.driver)
+        self.fujimart = FujiMart(self.driver)
 
     def daily_crawl(self, site):
         """Main workhorse function. Support functions defined below"""
@@ -46,6 +48,8 @@ class Run():
                 CATEGORIES_PAGES = self.coop.get_category_list()
             elif site == "bachhoaxanh":
                 CATEGORIES_PAGES = self.bachhoaxanh.get_category_list()
+            elif site == "fujimart":
+                CATEGORIES_PAGES = self.fujimart.get_category_list()
             print('Found ' + str(len(CATEGORIES_PAGES)) + ' categories')
             # Read each categories pages and scrape for data
             for cat in CATEGORIES_PAGES:
@@ -55,6 +59,8 @@ class Run():
                     self.coop.scrap_data(cat)
                 elif site == "bachhoaxanh":
                     self.bachhoaxanh.scrap_data(cat)
+                elif site == "fujimart":
+                    self.fujimart.scrap_data(cat)
         except Exception as e:
             print('Got exception, scraper stopped')
             print(type(e).__name__ + str(e))
@@ -64,6 +70,6 @@ class Run():
 
 if __name__ == '__main__':
     run = Run()
-    sites = ["bachhoaxanh"]
+    sites = ["fujimart"]
     for site in sites:
         run.daily_crawl(site)
