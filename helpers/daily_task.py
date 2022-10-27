@@ -48,7 +48,7 @@ class Run():
                 CATEGORIES_PAGES = self.bachhoaxanh.get_category_list()
             print('Found ' + str(len(CATEGORIES_PAGES)) + ' categories')
             # Read each categories pages and scrape for data
-            for cat in CATEGORIES_PAGES):
+            for cat in CATEGORIES_PAGES:
                 if site == "vinmart":
                     self.vin.scrap_data(cat)
                 elif site == "coop":
