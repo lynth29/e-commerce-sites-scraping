@@ -30,7 +30,7 @@ class FujiMart:
         # Scroll options
         self.SCROLL_PAUSE_TIME = 5
         # Classes
-        self.wr = CSV_write("bachhoaxanh")
+        self.wr = CSV_write("fujimart")
 
     def get_category_list(self):
         """Get list of relative categories directories from the top page"""
@@ -83,4 +83,4 @@ class FujiMart:
             row['product_name'] = item.find('h4').text.strip() if item.find('h4') != None else None
             self.OBSERVATION += 1
             self.wr.write_data(row)
-        print('Finished scraping ' + cat_name + ' category.')
+        print('Finished scraping ' + cat['cat_l1'] + ' category.')
