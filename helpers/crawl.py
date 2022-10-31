@@ -55,3 +55,24 @@ class ChromeDriver:
         # Create driver 
         driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=op)
         return driver
+
+    def show_driver(self):
+        """
+        Create chrome webdriver with showing
+        """
+
+        op = webdriver.ChromeOptions()
+        op.add_argument('--no-sandbox')
+        # Set window size to maximized mode
+        op.add_argument("--start-maximized")
+        # Overcome limited resource problems
+        op.add_argument("--disable-dev-shm-usage")
+        op.add_argument("--disable-gpu")
+        # Disable infobars
+        op.add_argument("--disable-infobars")
+        # Disable extensions
+        op.add_argument("--disable-extensions")
+
+        # Create driver 
+        driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=op)
+        return driver

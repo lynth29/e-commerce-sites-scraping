@@ -14,7 +14,7 @@ from helpers.crawl import *
 # from helpers.logging import *
 from helpers.write import *
 from helpers.read import *
-from websites.vinmart import *
+from websites.winmart import *
 from websites.coop import *
 from websites.bachhoaxanh import *
 from websites.fujimart import *
@@ -25,7 +25,7 @@ class Run():
         # Driver
         self.driver = ChromeDriver().normal_driver()
         # Classes
-        self.vin = Vinmart(self.driver)
+        self.win = Winmart(ChromeDriver().show_driver())
         self.coop = Coop(self.driver)
         self.bachhoaxanh = BachHoaXanh(self.driver)
         self.fujimart = FujiMart(self.driver)
@@ -37,13 +37,11 @@ class Run():
             print('Scraper started')
             # Select mart
             print('Start selecting shipping location')
-            if site == "vinmart":
-                self.vin.choose_location()
-            elif site == "coop":
+            if site == "coop":
                 self.coop.choose_location()
             # Get categories directories
-            if site == "vinmart":
-                CATEGORIES_PAGES = self.vin.get_category_list()
+            if site == "winmart":
+                CATEGORIES_PAGES = self.win.get_category_list()
             elif site == "coop":
                 CATEGORIES_PAGES = self.coop.get_category_list()
             elif site == "bachhoaxanh":
@@ -53,8 +51,8 @@ class Run():
             print('Found ' + str(len(CATEGORIES_PAGES)) + ' categories')
             # Read each categories pages and scrape for data
             for cat in CATEGORIES_PAGES:
-                if site == "vinmart":
-                    self.vin.scrap_data(cat)
+                if site == "winmart":
+                    self.win.scrap_data(cat)
                 elif site == "coop":
                     self.coop.scrap_data(cat)
                 elif site == "bachhoaxanh":
@@ -70,6 +68,6 @@ class Run():
 
 if __name__ == '__main__':
     run = Run()
-    sites = ["fujimart"]
+    sites = ["bachhoaxanh","coop","fujimart","winmart"]
     for site in sites:
         run.daily_crawl(site)
