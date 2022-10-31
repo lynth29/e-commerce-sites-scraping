@@ -110,7 +110,7 @@ class Winmart:
         for item in list:
             row = {}
             # Product name
-            row['product_name'] = item.find('h6').text.strip() else None if item.find('h6') != None
+            row['product_name'] = item.find('h6').text.strip() if item.find('h6') != None else None 
             # # Price
             # if item.find('div', {'class': 'product-card-two__Price-sc-1lvbgq2-6 hrPTUd'}) != None:
             #     price = item.find(

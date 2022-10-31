@@ -121,7 +121,8 @@ class Coop:
             row['cat_l2'] = cat['cat_l2']
             row['cat_l3'] = cat['cat_l3']
             # Name
-            product_name = item.find('h4').text.strip() if item.find('h4') != None else None
+            product_name = item.find('div', class_='caption').find('a').text.strip()
+            row['product_name'] = product_name
             # # Price
             # if item.find('span', class_='price-new col-xs-12') != None:
             #     price = item.find('span', class_='price-new col-xs-12').text.strip()
