@@ -3,7 +3,8 @@
 
 ### Current sites that can be properly scraped by the scripts:
 1. [CoopMart](https://cooponline.vn/)
-2. [VinMart](https://vinmart.com/)
+2. [VinMart](https://winmart.vn/)
+
 
 ### _Note_:
 `credentials.json` is associated with personal email address so please use your own credentials to be able to upload the file to your Google Drive.
