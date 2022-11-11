@@ -100,8 +100,8 @@ class Coop:
             try:
                 # Wait
                 self.wait.until(
-                    EC.presence_of_element_located((By.XPATH, "//span[contains(text(), ' Xem tiếp . . .')]")))
-                see_more = self.BROWSER.find_element(By.XPATH, "/span[contains(text(), ' Xem tiếp . . .')]")
+                    EC.presence_of_element_located((By.XPATH, "//span[text()=' Xem tiếp . . .']")))
+                see_more = self.BROWSER.find_element(By.XPATH, "//span[text()=' Xem tiếp . . .']")
                 see_more.click()
             except IGNORED_EXCEPTIONS:
                 print(
