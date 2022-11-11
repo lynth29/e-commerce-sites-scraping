@@ -27,7 +27,7 @@ class CSV_write:
         # Set date
         self.DATE = str(datetime.date.today())
         # Set fieldnames
-        self.fieldnames = ['product_name', 'cat_l1', 'cat_l2', 'cat_l3']
+        self.fieldnames = ['product_name', 'brand', 'cat_l1', 'cat_l2', 'cat_l3', 'href']
 
     def write_data(self, item_data):
         """Write an item data as a row in csv. Create new file if needed"""

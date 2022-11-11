@@ -123,6 +123,16 @@ class Coop:
             # Name
             product_name = item.find('div', class_='caption').find('a').text.strip()
             row['product_name'] = product_name
+            # Brand
+            href = item.find('a')['href']
+            prod_res = requests.get(href)
+            prod_soup = BeautifulSoup(prod_res.content, features="lxml")
+            try:
+                brand_holder = prod_soup.find('h4').find('a')
+                row['brand'] = brand_holder.text.strip()
+            except AttributeError:
+                row['brand'] = ""
+            row['href'] = href
             # # Price
             # if item.find('span', class_='price-new col-xs-12') != None:
             #     price = item.find('span', class_='price-new col-xs-12').text.strip()

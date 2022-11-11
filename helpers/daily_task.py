@@ -23,9 +23,9 @@ class Run():
 
     def __init__(self):
         # Driver
-        self.driver = ChromeDriver().normal_driver()
+        self.driver = ChromeDriver().show_driver()
         # Classes
-        self.win = Winmart(ChromeDriver().show_driver())
+        self.win = Winmart(self.driver)
         self.coop = Coop(self.driver)
         self.bachhoaxanh = BachHoaXanh(self.driver)
         self.fujimart = FujiMart(self.driver)
@@ -38,7 +38,8 @@ class Run():
             # Select mart
             print('Start selecting shipping location')
             if site == "coop":
-                self.coop.choose_location()
+                # self.coop.choose_location()
+                self.coop.disable_sub()
             # Get categories directories
             if site == "winmart":
                 CATEGORIES_PAGES = self.win.get_category_list()
@@ -68,6 +69,6 @@ class Run():
 
 if __name__ == '__main__':
     run = Run()
-    sites = ["bachhoaxanh","coop","fujimart","winmart"]
+    sites = ["coop"]
     for site in sites:
         run.daily_crawl(site)

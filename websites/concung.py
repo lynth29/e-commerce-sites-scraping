@@ -14,23 +14,23 @@ from helpers.write import *
 from helpers.crawl import *
 
 # Parameters
-SITE_NAME = "bachhoaxanh"
+SITE_NAME = "concung"
 PATH_CSV = os.path.join(PROJECT_PATH, "csv", SITE_NAME)
 
 # Define class
-class BachHoaXanh:
+class ConCung:
 
     def __init__(self, driver):
         # Parameters
         self.BROWSER = driver
-        self.BASE_URL = "https://www.bachhoaxanh.com"
+        self.BASE_URL = "https://concung.com"
         self.OBSERVATION = 0
         # Define wait
         self.wait = WebDriverWait(self.BROWSER, 10)
         # Scroll options
         self.SCROLL_PAUSE_TIME = 5
         # Classes
-        self.wr = CSV_write("bachhoaxanh")
+        self.wr = CSV_write("concung")
 
     def get_category_list(self):
         """Get list of relative categories directories from the top page"""
@@ -86,7 +86,7 @@ class BachHoaXanh:
                     EC.presence_of_element_located((By.XPATH, "//a[@class='viewmore']")))
                 see_more = self.BROWSER.find_element(By.XPATH, "//a[@class='viewmore']")
                 see_more.click()
-                sleep(2)
+                sleep(1)
             except IGNORED_EXCEPTIONS:
                 print(
                     'Clicked all see_more button as much as possible in ' + cat_name + ' category.')
@@ -105,16 +105,6 @@ class BachHoaXanh:
             row['cat_l3'] = cat['cat_l3']
             # Name
             row['product_name'] = item.find('h3').text.strip() if item.find('h3') != None else None
-            # Brand
-            href = self.BASE_URL + item.find('a')['href'] if item.find('a') != None else None
-            prod_res = requests.get(href)
-            prod_soup = BeautifulSoup(prod_res.content, features="lxml")
-            try:
-                brand_holder = prod_soup.find('ul', class_='infoproduct nospeci').find('li').find('div')
-                row['brand'] = brand_holder.text.split('(')[0].strip()
-            except AttributeError:
-                row['brand'] = ""
-            row['href'] = href
             self.OBSERVATION += 1
             self.wr.write_data(row)
         print('Finished scraping ' + cat_name + ' category.')

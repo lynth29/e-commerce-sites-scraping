@@ -133,6 +133,8 @@ class Winmart:
             row['cat_l1'] = cat['cat_l1']
             row['cat_l2'] = cat['cat_l2']
             row['cat_l3'] = cat['cat_l3']
+            row['brand'] = ""
+            row['href'] = self.BASE_URL + item.find('a')['href']
             self.OBSERVATION += 1
             self.wr.write_data(row)
         # except Exception as e:

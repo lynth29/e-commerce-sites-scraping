@@ -81,6 +81,8 @@ class FujiMart:
             row['cat_l3'] = cat['cat_l3']
             # Name
             row['product_name'] = item.find('h4').text.strip() if item.find('h4') != None else None
+            row["brand"] = ""
+            row["href"] = item.find('div', class_='image').find('a')['href']
             self.OBSERVATION += 1
             self.wr.write_data(row)
         print('Finished scraping ' + cat['cat_l1'] + ' category.')
