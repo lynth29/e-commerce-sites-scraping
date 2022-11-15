@@ -75,38 +75,44 @@ class BiboMart:
     def scrap_data(self, cat):
         """Get item data from a category page and self.write to csv"""
         # Access
-        self.BROWSER.get(cat['href'])
+        res = requests.get(cat['href'])
         # Get soup
-        soup = BeautifulSoup(self.BROWSER.page_source, 'lxml')
-        # Define cat_name
-        cat_name = cat["cat_l3"] if cat["cat_l3"] != "" else cat["cat_l2"]
-        # Click see_more button as many as possible
-        while True:
-            try:
-                # Wait
-                self.wait.until(
-                    EC.presence_of_element_located((By.XPATH, "//a[@class='viewmore']")))
-                see_more = self.BROWSER.find_element(By.XPATH, "//a[@class='viewmore']")
-                see_more.click()
-                sleep(1)
-            except IGNORED_EXCEPTIONS:
-                print(
-                    'Clicked all see_more button as much as possible in ' + cat_name + ' category.')
-                break
-        # Scraping product's data
-        soup = BeautifulSoup(self.BROWSER.page_source, 'lxml')
-        # Get all products' holders
-        products = soup.find('ul', class_='cate')
-        list = products.find_all('li')[:-1]
-        print('Found ' + str(len(list)) + ' products')
+        soup = BeautifulSoup(res.content, features='lxml')
+        # Get page numbers
+        page_holder = soup.find('ul', attrs={'aria-labelledby':'paging-label'})
+        if page_holder != None:
+            page_num = len(page_holder.find_all('li', class_='item')) - 1
+        else:
+            page_num = 1
+        # Get all product holders
+        all_products = []
+        for page in range(1, page_num + 1):
+            if page != 1:
+                res_page = requests.get(res_page.url + "?p=" + str(page))
+                soup_page = BeautifulSoup(res_page.content, features="lxml")
+            products = soup_page.find_all('li', class_='item product product-item')
+            all_products.extend(products)
+        print('Found ' + str(len(all_products)) + ' products')
         # Scraping data
-        for item in list:
+        for item in all_products:
             row = {}
             row['cat_l1'] = cat['cat_l1']
             row['cat_l2'] = cat['cat_l2']
             row['cat_l3'] = cat['cat_l3']
             # Name
-            row['product_name'] = item.find('h3').text.strip() if item.find('h3') != None else None
+            row['product_name'] = item.find('a', class_='product-item-link').text.strip()
+            # Brand
+            href = item.find('a', class_='product-item-link')['href']
+            prod_res = requests.get(href)
+            prod_soup = BeautifulSoup(prod_res.content, features="lxml")
+            brand_holder = prod_soup.find('td', attrs={'data-th':'Thương hiệu'})
+            if brand_holder != None:
+                row['brand'] = brand_holder.text.strip()
+            else:
+                row['brand'] = ""
+            row['href'] = href
             self.OBSERVATION += 1
             self.wr.write_data(row)
+        # Define cat_name
+        cat_name = cat["cat_l3"] if cat["cat_l3"] != "" else cat["cat_l2"]
         print('Finished scraping ' + cat_name + ' category.')
