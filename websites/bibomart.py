@@ -20,16 +20,10 @@ PATH_CSV = os.path.join(PROJECT_PATH, "csv", SITE_NAME)
 # Define class
 class BiboMart:
 
-    def __init__(self, driver):
+    def __init__(self):
         # Parameters
-        self.BROWSER = driver
         self.BASE_URL = "https://bibomart.com.vn"
         self.OBSERVATION = 0
-        # Define wait
-        self.wait = WebDriverWait(self.BROWSER, 10)
-        # Scroll options
-        self.SCROLL_PAUSE_TIME = 5
-        # Classes
         self.wr = CSV_write("bibomart")
 
     def get_category_list(self):
@@ -89,8 +83,8 @@ class BiboMart:
         for page in range(1, page_num + 1):
             if page != 1:
                 res_page = requests.get(res_page.url + "?p=" + str(page))
-                soup_page = BeautifulSoup(res_page.content, features="lxml")
-            products = soup_page.find_all('li', class_='item product product-item')
+                soup = BeautifulSoup(res_page.content, features="lxml")
+            products = soup.find_all('li', class_='item product product-item')
             all_products.extend(products)
         print('Found ' + str(len(all_products)) + ' products')
         # Scraping data
