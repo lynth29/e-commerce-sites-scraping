@@ -82,7 +82,7 @@ class BiboMart:
         all_products = []
         for page in range(1, page_num + 1):
             if page != 1:
-                res_page = requests.get(res_page.url + "?p=" + str(page))
+                res_page = requests.get(res.url + "?p=" + str(page))
                 soup = BeautifulSoup(res_page.content, features="lxml")
             products = soup.find_all('li', class_='item product product-item')
             all_products.extend(products)
