@@ -5,8 +5,9 @@
 # Work with files and folders
 import sys
 import os
-sys.path.append('.')
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+sys.path.append(".")
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 # Import modules
 from helpers.read import *
@@ -19,92 +20,126 @@ PATH_CSV = os.path.join(PROJECT_PATH, "csv", SITE_NAME)
 
 # Define class
 class ConCung:
-
-    def __init__(self, driver):
+    def __init__(self):
         # Parameters
-        self.BROWSER = driver
         self.BASE_URL = "https://concung.com"
+        self.headers = {
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36 Edg/107.0.1418.42"
+        }
         self.OBSERVATION = 0
-        # Define wait
-        self.wait = WebDriverWait(self.BROWSER, 10)
-        # Scroll options
-        self.SCROLL_PAUSE_TIME = 5
-        # Classes
         self.wr = CSV_write("concung")
 
     def get_category_list(self):
         """Get list of relative categories directories from the top page"""
         # Access to browser
-        res = requests.get(self.BASE_URL)
+        res = requests.get(self.BASE_URL, headers=self.headers)
         # Get soup
         toppage_soup = BeautifulSoup(res.content, features="lxml")
         # Get categories
-        categories_bar = toppage_soup.find_all('li', attrs={"class":"CateItem"})
+        categories_bar = toppage_soup.find(
+            "ul",
+            class_="menu-main container pb-3 font-12 d-flex border border-top-0 pl-3",
+        )
+        categories_bar = categories_bar.find_all(
+            "li", class_=re.compile(r"menu-1 has-submenu")
+        )
         # Create an empty list to store categories' information
         page_list = []
         for cat in categories_bar:
-            parent_cat = cat.find('div', class_="nav-parent").text.strip()
-            child_cats = cat.find_all('div', class_='parent')
-            for child in child_cats:
-                # Check whether lv3 categories exist or not
-                child_res = requests.get(self.BASE_URL + child.find('a')['href'])
-                child_soup = BeautifulSoup(child_res.content, features="lxml")
-                lv3_categories = child_soup.find_all('div', class_='groupfeature')
-                # If none set l3 as blank
-                if len(lv3_categories) == 0:
-                    row = {}
-                    row["cat_l1"] = parent_cat
-                    row["cat_l2"] = child.text.strip()
-                    row["cat_l3"] = ""
-                    row["href"] = child.find('a')['href']
-                    page_list.append(row)
-                else:
-                    for child_cat in lv3_categories:
+            cat_l1 = cat.find("a", recursive=False).text.strip()
+            # Get holders that have sub sections
+            sub_secs = cat.find_all("ul", class_="menu-child")
+            for sub in sub_secs:
+                # Get all child cats in sub sections
+                child_cats = sub.find_all("li", class_="menu-2")
+                # Run through each child cat to find grandchild cat
+                for child in child_cats:
+                    child_cat = child.find(class_="position-relative")
+                    # Not sữa bột, bỉm tã
+                    if child_cat != None:
+                        cat_l2 = child_cat.text.strip()
+                        granchild_cats = child.find_all("li", class_="menu-3")
+                        # Have grandchild cats
+                        if len(granchild_cats) > 0:
+                            for grandchild in granchild_cats:
+                                row = {}
+                                row["cat_l1"] = cat_l1
+                                row["cat_l2"] = cat_l2
+                                row["cat_l3"] = grandchild.text.strip()
+                                row["href"] = grandchild.find("a")["href"]
+                                page_list.append(row)
+                        # No grandchild cats
+                        else:
+                            row = {}
+                            row["cat_l1"] = cat_l1
+                            row["cat_l2"] = cat_l2
+                            row["cat_l3"] = ""
+                            try:  # Ignoring child cats which are cat title
+                                row["href"] = child.find("a")["href"]
+                                page_list.append(row)
+                            except TypeError:
+                                pass
+                    # Sữa bột, bỉm tã
+                    else:
                         row = {}
-                        row["cat_l1"] = parent_cat
-                        row["cat_l2"] = child.text.strip()
-                        row["cat_l3"] = child_cat.find('h2').text.strip()
-                        row["href"] = child_cat.find('a')['href']
+                        row["cat_l1"] = cat_l1
+                        row["cat_l2"] = cat_l2
+                        cat_l3 = child.find("a").get("title")
+                        row["cat_l3"] = (
+                            cat_l3
+                            if cat_l3 != None
+                            else re.sub(r"\s", "", child.find("a").text.strip())
+                        )
+                        row["href"] = child.find("a")["href"]
                         page_list.append(row)
         # Remove duplicates
+        page_list = [i for i in page_list if i["cat_l2"] not in ("Thương hiệu") and i["cat_l3"] != ""]
         page_list = [dict(t) for t in set(tuple(i.items()) for i in page_list)]
         return page_list
 
     def scrap_data(self, cat):
         """Get item data from a category page and self.write to csv"""
         # Access
-        self.BROWSER.get(self.BASE_URL + cat['href'])
+        res = requests.get(cat["href"], headers=self.headers)
         # Get soup
-        soup = BeautifulSoup(self.BROWSER.page_source, 'lxml')
-        # Define cat_name
-        cat_name = cat["cat_l3"] if cat["cat_l3"] != "" else cat["cat_l2"]
-        # Click see_more button as many as possible
-        while True:
-            try:
-                # Wait
-                self.wait.until(
-                    EC.presence_of_element_located((By.XPATH, "//a[@class='viewmore']")))
-                see_more = self.BROWSER.find_element(By.XPATH, "//a[@class='viewmore']")
-                see_more.click()
-                sleep(1)
-            except IGNORED_EXCEPTIONS:
-                print(
-                    'Clicked all see_more button as much as possible in ' + cat_name + ' category.')
-                break
-        # Scraping product's data
-        soup = BeautifulSoup(self.BROWSER.page_source, 'lxml')
-        # Get all products' holders
-        products = soup.find('ul', class_='cate')
-        list = products.find_all('li')[:-1]
-        print('Found ' + str(len(list)) + ' products')
+        soup = BeautifulSoup(res.content, features="lxml")
+        # Get page numbers
+        page_holder = soup.find("ul", class_="pagination")
+        if page_holder != None:
+            page_num = len(page_holder.find_all("li")) - 1
+        else:
+            page_num = 1
+        # Get all product holders
+        all_products = []
+        for page in range(1, page_num + 1):
+            if page != 1:
+                res_page = requests.get(res.url + "?p=" + str(page))
+                soup = BeautifulSoup(res_page.content, features="lxml")
+            products = soup.find_all("div", class_="product-item")
+            all_products.extend(products)
+        print("Found " + str(len(all_products)) + " products")
         # Scraping data
-        for item in list:
+        for item in all_products:
             row = {}
-            row['cat_l1'] = cat['cat_l1']
-            row['cat_l2'] = cat['cat_l2']
-            row['cat_l3'] = cat['cat_l3']
+            row["cat_l1"] = cat["cat_l1"]
+            row["cat_l2"] = cat["cat_l2"]
+            row["cat_l3"] = cat["cat_l3"]
             # Name
-            row['product_name'] = item.find('h3').text.strip() if item.find('h3') != None else None
+            row["product_name"] = item.find("h4").text.strip()
+            # Brand
+            href = item.find("a")["href"]
+            prod_res = requests.get(href, headers=self.headers)
+            prod_soup = BeautifulSoup(prod_res.content, features="lxml")
+            brand_holder = (
+                prod_soup.find("tbody").find(string="Thương hiệu").find_parents("tr")
+            )
+            if len(brand_holder) > 0:
+                row["brand"] = brand_holder[0].find("a").text.strip()
+            else:
+                row["brand"] = ""
+            row["href"] = href
             self.OBSERVATION += 1
             self.wr.write_data(row)
-        print('Finished scraping ' + cat_name + ' category.')
+        # Define cat_name
+        cat_name = cat["cat_l3"] if cat["cat_l3"] != "" else cat["cat_l2"]
+        print("Finished scraping " + cat_name + " category.")
