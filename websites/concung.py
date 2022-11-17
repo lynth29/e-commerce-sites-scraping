@@ -99,6 +99,8 @@ class ConCung:
 
     def scrap_data(self, cat):
         """Get item data from a category page and self.write to csv"""
+        # Define cat_name
+        cat_name = cat["cat_l3"] if cat["cat_l3"] != "" else cat["cat_l2"]
         # Access
         res = requests.get(cat["href"], headers=self.headers)
         # Get soup
@@ -113,11 +115,11 @@ class ConCung:
         all_products = []
         for page in range(1, page_num + 1):
             if page != 1:
-                res_page = requests.get(res.url + "?p=" + str(page))
+                res_page = requests.get(res.url + "?p=" + str(page), headers=self.headers)
                 soup = BeautifulSoup(res_page.content, features="lxml")
             products = soup.find_all("div", class_="product-item")
             all_products.extend(products)
-        print("Found " + str(len(all_products)) + " products")
+        print("Found " + str(len(all_products)) + " products in " + cat_name)
         # Scraping data
         for item in all_products:
             row = {}
@@ -130,16 +132,15 @@ class ConCung:
             href = item.find("a")["href"]
             prod_res = requests.get(href, headers=self.headers)
             prod_soup = BeautifulSoup(prod_res.content, features="lxml")
-            brand_holder = (
-                prod_soup.find("tbody").find(string="Thương hiệu").find_parents("tr")
-            )
-            if len(brand_holder) > 0:
-                row["brand"] = brand_holder[0].find("a").text.strip()
-            else:
+            try:
+                brand_holder = prod_soup.find("tbody").find(string="Thương hiệu").find_parents("tr")
+                if len(brand_holder) > 0:
+                    row["brand"] = brand_holder[0].find("a").text.strip()
+                else:
+                    row["brand"] = ""
+            except AttributeError:
                 row["brand"] = ""
             row["href"] = href
             self.OBSERVATION += 1
             self.wr.write_data(row)
-        # Define cat_name
-        cat_name = cat["cat_l3"] if cat["cat_l3"] != "" else cat["cat_l2"]
         print("Finished scraping " + cat_name + " category.")
