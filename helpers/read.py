@@ -8,15 +8,15 @@ import sys
 from zipfile import ZipFile
 from pathlib import Path
 import datetime
-sys.path.append('.')
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+sys.path.append(".")
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 # Parameters
 PROJECT_PATH = Path(__file__).absolute().parents[1]
 
 # Define classes
 class CSV_read:
-
     def __init__(self, site_name):
         # Set output
         self.SITE_NAME = site_name
@@ -30,9 +30,9 @@ class CSV_read:
             os.makedirs(self.PATH_CSV)
         os.chdir(self.PATH_CSV)
         try:
-            with ZipFile(self.SITE_NAME + '_' + self.DATE + '_csv.zip', 'a') as zip_csv:
+            with ZipFile(self.SITE_NAME + "_" + self.DATE + "_csv.zip", "a") as zip_csv:
                 zip_csv.extractall(self.PATH_CSV)
         except Exception as e:
-            print('Error when compressing csv')
+            print("Error when compressing csv")
             print(type(e).__name__ + str(e))
         os.chdir(PROJECT_PATH)

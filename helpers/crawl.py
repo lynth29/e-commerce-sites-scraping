@@ -5,10 +5,12 @@
 # Work with files and folders
 import os
 from pathlib import Path
+
 # Work with time
 import time
 import datetime
 from time import sleep
+
 # Handle data
 import re
 import random
@@ -29,10 +31,23 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
-from selenium.common.exceptions import SessionNotCreatedException, TimeoutException, NoSuchElementException, StaleElementReferenceException, ElementClickInterceptedException
-IGNORED_EXCEPTIONS = (NoSuchElementException, StaleElementReferenceException, TimeoutException, ElementClickInterceptedException)
-class ChromeDriver:
+from selenium.common.exceptions import (
+    SessionNotCreatedException,
+    TimeoutException,
+    NoSuchElementException,
+    StaleElementReferenceException,
+    ElementClickInterceptedException,
+)
 
+IGNORED_EXCEPTIONS = (
+    NoSuchElementException,
+    StaleElementReferenceException,
+    TimeoutException,
+    ElementClickInterceptedException,
+)
+
+
+class ChromeDriver:
     def normal_driver(self):
         """
         Create normal chrome webdriver with some options
@@ -40,8 +55,8 @@ class ChromeDriver:
 
         op = webdriver.ChromeOptions()
         # Run browser in headless mode
-        op.add_argument('--headless')
-        op.add_argument('--no-sandbox')
+        op.add_argument("--headless")
+        op.add_argument("--no-sandbox")
         # Set window size to maximized mode
         op.add_argument("--start-maximized")
         # Overcome limited resource problems
@@ -52,8 +67,10 @@ class ChromeDriver:
         # Disable extensions
         op.add_argument("--disable-extensions")
 
-        # Create driver 
-        driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=op)
+        # Create driver
+        driver = webdriver.Chrome(
+            service=ChromeService(ChromeDriverManager().install()), options=op
+        )
         return driver
 
     def show_driver(self):
@@ -62,7 +79,7 @@ class ChromeDriver:
         """
 
         op = webdriver.ChromeOptions()
-        op.add_argument('--no-sandbox')
+        op.add_argument("--no-sandbox")
         # Set window size to maximized mode
         op.add_argument("--start-maximized")
         # Overcome limited resource problems
@@ -73,6 +90,8 @@ class ChromeDriver:
         # Disable extensions
         op.add_argument("--disable-extensions")
 
-        # Create driver 
-        driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=op)
+        # Create driver
+        driver = webdriver.Chrome(
+            service=ChromeService(ChromeDriverManager().install()), options=op
+        )
         return driver

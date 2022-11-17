@@ -8,9 +8,10 @@ import os
 from pathlib import Path
 
 # Import other functions
-sys.path.append('.')
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.append(".")
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from helpers.crawl import *
+
 # from helpers.logging import *
 from helpers.write import *
 from helpers.read import *
@@ -19,9 +20,10 @@ from websites.coop import *
 from websites.bachhoaxanh import *
 from websites.fujimart import *
 from websites.bibomart import *
+from websites.concung import *
 
-class Run():
 
+class Run:
     def __init__(self):
         # Driver
         self.driver = ChromeDriver().normal_driver()
@@ -31,14 +33,15 @@ class Run():
         self.bachhoaxanh = BachHoaXanh(self.driver)
         self.fujimart = FujiMart(self.driver)
         self.bibomart = BiboMart()
+        self.concung = ConCung()
 
     def daily_crawl(self, site):
         """Main workhorse function. Support functions defined below"""
         # Scrape
         try:
-            print('Scraper started')
+            print("Scraper started")
             # Select mart
-            print('Start selecting shipping location')
+            print("Start selecting shipping location")
             if site == "coop":
                 # self.coop.choose_location()
                 self.coop.disable_sub()
@@ -53,7 +56,7 @@ class Run():
                 CATEGORIES_PAGES = self.fujimart.get_category_list()
             elif site == "bibomart":
                 CATEGORIES_PAGES = self.bibomart.get_category_list()
-            print('Found ' + str(len(CATEGORIES_PAGES)) + ' categories')
+            print("Found " + str(len(CATEGORIES_PAGES)) + " categories")
             # Read each categories pages and scrape for data
             for cat in CATEGORIES_PAGES:
                 if site == "winmart":
@@ -67,14 +70,18 @@ class Run():
                 elif site == "bibomart":
                     self.bibomart.scrap_data(cat)
         except Exception as e:
-            print('Got exception, scraper stopped')
+            print("Got exception, scraper stopped")
             print(type(e).__name__ + str(e))
         # Compress scraped data
         CSV_write(site).compress_csv()
-        print('Finished. Hibernating until next day...')
+        print("Finished. Hibernating until next day...")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     run = Run()
-    sites = ["bibomart"]
+    num_of_sites = int(input("How many sites you would like to crawl?: "))
+    sites = []
+    for i in range(num_of_sites):
+        sites.append(str(input("Which site then: ")))
     for site in sites:
         run.daily_crawl(site)

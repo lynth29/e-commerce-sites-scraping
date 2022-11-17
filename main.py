@@ -10,13 +10,13 @@ from post_scrape import upload
 
 # Define paths
 PROJECT_PATH = os.getcwd()
-SITES_LIST = [f.name for f in os.scandir(PROJECT_PATH + '/csv')]
+SITES_LIST = [f.name for f in os.scandir(PROJECT_PATH + "/csv")]
 
 # UI
 # log.info(f"Please choose a site to start scraping:")
 log.info("We will start scraping these sites.")
 for idx, site in enumerate(SITES_LIST, start=0):
-    if site.startswith('.'):
+    if site.startswith("."):
         continue
     log.info(f"{idx}. {site}")
 

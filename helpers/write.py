@@ -9,8 +9,9 @@ from zipfile import ZipFile
 from pathlib import Path
 import datetime
 import sys
-sys.path.append('.')
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+sys.path.append(".")
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 ## Write to data
 import csv
 
@@ -19,7 +20,6 @@ PROJECT_PATH = Path(__file__).absolute().parents[1]
 
 # Define classes
 class CSV_write:
-
     def __init__(self, site_name):
         # Set output
         self.SITE_NAME = site_name
@@ -27,14 +27,27 @@ class CSV_write:
         # Set date
         self.DATE = str(datetime.date.today())
         # Set fieldnames
-        self.fieldnames = ['product_name', 'brand', 'cat_l1', 'cat_l2', 'cat_l3', 'href']
+        self.fieldnames = [
+            "product_name",
+            "brand",
+            "cat_l1",
+            "cat_l2",
+            "cat_l3",
+            "href",
+        ]
 
     def write_data(self, item_data):
         """Write an item data as a row in csv. Create new file if needed"""
-        file_exists = os.path.isfile(os.path.join(self.PATH_CSV, self.SITE_NAME + "_" + self.DATE + ".csv"))
+        file_exists = os.path.isfile(
+            os.path.join(self.PATH_CSV, self.SITE_NAME + "_" + self.DATE + ".csv")
+        )
         if not os.path.exists(self.PATH_CSV):
             os.makedirs(self.PATH_CSV)
-        with open(os.path.join(self.PATH_CSV, self.SITE_NAME + "_" + self.DATE + ".csv"), "a", encoding="utf-8") as f:
+        with open(
+            os.path.join(self.PATH_CSV, self.SITE_NAME + "_" + self.DATE + ".csv"),
+            "a",
+            encoding="utf-8",
+        ) as f:
             writer = csv.DictWriter(f, self.fieldnames)
             if not file_exists:
                 writer.writeheader()
@@ -46,11 +59,11 @@ class CSV_write:
             os.makedirs(self.PATH_CSV)
         os.chdir(self.PATH_CSV)
         try:
-            zip_csv = ZipFile(self.SITE_NAME + '_' + self.DATE + '_csv.zip', 'a')
+            zip_csv = ZipFile(self.SITE_NAME + "_" + self.DATE + "_csv.zip", "a")
             for file in glob.glob("*" + self.DATE + "*" + "csv"):
                 zip_csv.write(file)
                 os.remove(file)
         except Exception as e:
-            print('Error when compressing csv')
+            print("Error when compressing csv")
             print(type(e).__name__ + str(e))
         os.chdir(PROJECT_PATH)
