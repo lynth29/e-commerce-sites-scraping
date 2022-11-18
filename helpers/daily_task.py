@@ -21,19 +21,32 @@ from websites.bachhoaxanh import *
 from websites.fujimart import *
 from websites.bibomart import *
 from websites.concung import *
+from websites.kidsplaza import *
 
 
 class Run:
-    def __init__(self):
+    def __init__(self, list_of_sites):
+        self.list_of_sites = list_of_sites
         # Driver
         self.driver = ChromeDriver().normal_driver()
         # Classes
-        self.win = Winmart(self.driver)
-        self.coop = Coop(self.driver)
-        self.bachhoaxanh = BachHoaXanh(self.driver)
-        self.fujimart = FujiMart(self.driver)
-        self.bibomart = BiboMart()
-        self.concung = ConCung()
+        self.win = (
+            Winmart(ChromeDriver().show_driver())
+            if "win" in self.list_of_sites
+            else None
+        )
+        self.coop = Coop(self.driver) if "coop" in self.list_of_sites else None
+        self.bachhoaxanh = (
+            BachHoaXanh(self.driver) if "bachhoaxanh" in self.list_of_sites else None
+        )
+        self.fujimart = (
+            FujiMart(self.driver) if "fujimart" in self.list_of_sites else None
+        )
+        self.bibomart = BiboMart() if "bibomart" in self.list_of_sites else None
+        self.concung = ConCung() if "concung" in self.list_of_sites else None
+        self.kidsplaza = (
+            KidsPlaza(self.driver) if "kidsplaza" in self.list_of_sites else None
+        )
 
     def daily_crawl(self, site):
         """Main workhorse function. Support functions defined below"""
@@ -56,6 +69,10 @@ class Run:
                 CATEGORIES_PAGES = self.fujimart.get_category_list()
             elif site == "bibomart":
                 CATEGORIES_PAGES = self.bibomart.get_category_list()
+            elif site == "concung":
+                CATEGORIES_PAGES = self.concung.get_category_list()
+            elif site == "kidsplaza":
+                CATEGORIES_PAGES = self.kidsplaza.get_category_list()
             print("Found " + str(len(CATEGORIES_PAGES)) + " categories")
             # Read each categories pages and scrape for data
             for cat in CATEGORIES_PAGES:
@@ -69,6 +86,10 @@ class Run:
                     self.fujimart.scrap_data(cat)
                 elif site == "bibomart":
                     self.bibomart.scrap_data(cat)
+                elif site == "concung":
+                    self.concung.scrap_data(cat)
+                elif site == "kidsplaza":
+                    self.kidsplaza.scrap_data(cat)
         except Exception as e:
             print("Got exception, scraper stopped")
             print(type(e).__name__ + str(e))
