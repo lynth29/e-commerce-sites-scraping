@@ -99,10 +99,11 @@ class Run:
 
 
 if __name__ == "__main__":
-    run = Run()
     num_of_sites = int(input("How many sites you would like to crawl?: "))
     sites = []
     for i in range(num_of_sites):
         sites.append(str(input("Which site then: ")))
+    
+    run = Run(sites)
     for site in sites:
         run.daily_crawl(site)
