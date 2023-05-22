@@ -35,6 +35,23 @@ class CSV_write:
             "cat_l3",
             "href",
         ]
+        self.tts_fieldnames = [
+            "product_name",
+            "price_1",
+            "price_2",
+            "price_3",
+            "cat_l1",
+            "cat_l2",
+            "href",
+            "shop_name",
+            "shop_address",
+            "shop_subs",
+            "shop_join",
+            "shop_prods",
+            "shop_rep_rate",
+            "shop_followers",
+            "shop_href"
+        ]
 
     def write_data(self, item_data):
         """Write an item data as a row in csv. Create new file if needed"""
@@ -48,7 +65,8 @@ class CSV_write:
             "a",
             encoding="utf-8",
         ) as f:
-            writer = csv.DictWriter(f, self.fieldnames)
+            field = self.fieldnames if self.SITE_NAME != "thitruongsi" else self.tts_fieldnames
+            writer = csv.DictWriter(f, field)
             if not file_exists:
                 writer.writeheader()
             writer.writerow(item_data)
