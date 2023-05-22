@@ -22,6 +22,7 @@ from websites.fujimart import *
 from websites.bibomart import *
 from websites.concung import *
 from websites.kidsplaza import *
+from websites.thitruongsi import *
 
 
 class Run:
@@ -47,52 +48,59 @@ class Run:
         self.kidsplaza = (
             KidsPlaza(self.driver) if "kidsplaza" in self.list_of_sites else None
         )
+        self.thitruongsi = (
+            ThiTruongSi() if "thitruongsi" in self.list_of_sites else None
+        )
 
     def daily_crawl(self, site):
         """Main workhorse function. Support functions defined below"""
         # Scrape
-        try:
-            print("Scraper started")
-            # Select mart
-            print("Start selecting shipping location")
-            if site == "coop":
-                # self.coop.choose_location()
-                self.coop.disable_sub()
-            # Get categories directories
+        # try:
+        print("Scraper started")
+        # Select mart
+        print("Start selecting shipping location")
+        if site == "coop":
+            # self.coop.choose_location()
+            self.coop.disable_sub()
+        # Get categories directories
+        if site == "winmart":
+            CATEGORIES_PAGES = self.win.get_category_list()
+        elif site == "coop":
+            CATEGORIES_PAGES = self.coop.get_category_list()
+        elif site == "bachhoaxanh":
+            CATEGORIES_PAGES = self.bachhoaxanh.get_category_list()
+        elif site == "fujimart":
+            CATEGORIES_PAGES = self.fujimart.get_category_list()
+        elif site == "bibomart":
+            CATEGORIES_PAGES = self.bibomart.get_category_list()
+        elif site == "concung":
+            CATEGORIES_PAGES = self.concung.get_category_list()
+        elif site == "kidsplaza":
+            CATEGORIES_PAGES = self.kidsplaza.get_category_list()
+        elif site == "thitruongsi":
+            CATEGORIES_PAGES = self.thitruongsi.get_category_list()
+        print("Found " + str(len(CATEGORIES_PAGES)) + " categories")
+        # Read each categories pages and scrape for data
+        for cat in CATEGORIES_PAGES:
             if site == "winmart":
-                CATEGORIES_PAGES = self.win.get_category_list()
+                self.win.scrap_data(cat)
             elif site == "coop":
-                CATEGORIES_PAGES = self.coop.get_category_list()
+                self.coop.scrap_data(cat)
             elif site == "bachhoaxanh":
-                CATEGORIES_PAGES = self.bachhoaxanh.get_category_list()
+                self.bachhoaxanh.scrap_data(cat)
             elif site == "fujimart":
-                CATEGORIES_PAGES = self.fujimart.get_category_list()
+                self.fujimart.scrap_data(cat)
             elif site == "bibomart":
-                CATEGORIES_PAGES = self.bibomart.get_category_list()
+                self.bibomart.scrap_data(cat)
             elif site == "concung":
-                CATEGORIES_PAGES = self.concung.get_category_list()
+                self.concung.scrap_data(cat)
             elif site == "kidsplaza":
-                CATEGORIES_PAGES = self.kidsplaza.get_category_list()
-            print("Found " + str(len(CATEGORIES_PAGES)) + " categories")
-            # Read each categories pages and scrape for data
-            for cat in CATEGORIES_PAGES:
-                if site == "winmart":
-                    self.win.scrap_data(cat)
-                elif site == "coop":
-                    self.coop.scrap_data(cat)
-                elif site == "bachhoaxanh":
-                    self.bachhoaxanh.scrap_data(cat)
-                elif site == "fujimart":
-                    self.fujimart.scrap_data(cat)
-                elif site == "bibomart":
-                    self.bibomart.scrap_data(cat)
-                elif site == "concung":
-                    self.concung.scrap_data(cat)
-                elif site == "kidsplaza":
-                    self.kidsplaza.scrap_data(cat)
-        except Exception as e:
-            print("Got exception, scraper stopped")
-            print(type(e).__name__ + str(e))
+                self.kidsplaza.scrap_data(cat)
+            elif site == "thitruongsi":
+                self.thitruongsi.scrap_data(cat)
+        # except Exception as e:
+        #     print("Got exception, scraper stopped")
+        #     print(type(e).__name__ + str(e))
         # Compress scraped data
         CSV_write(site).compress_csv()
         print("Finished. Hibernating until next day...")
