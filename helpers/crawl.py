@@ -23,6 +23,8 @@ from selenium.webdriver.chrome.service import Service as ChromeService
 from webdriver_manager.chrome import ChromeDriverManager
 from bs4 import BeautifulSoup
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 # Handle selenium exeptions
 import selenium.webdriver.support.ui as ui
@@ -95,3 +97,12 @@ class ChromeDriver:
             service=ChromeService(ChromeDriverManager().install()), options=op
         )
         return driver
+
+class Session:
+
+    def __init__(self):
+        self.session = requests.Session()
+        retry = Retry(connect=3, backoff_factor=0.5)
+        adapter = HTTPAdapter(max_retries=retry)
+        self.session.mount('http://', adapter)
+        self.session.mount('https://', adapter)
