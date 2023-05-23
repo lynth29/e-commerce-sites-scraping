@@ -5,9 +5,7 @@ dependencies:
   - beautifulsoup4
   - lxml
   - numpy
-  - openpyxl
   - pandas
-  - protobuf
   - python
   - requests
   - pip:
@@ -15,5 +13,6 @@ dependencies:
     - google_auth_oauthlib
     - selenium
     - selenium-requests
-    - scraping
     - webdriver-manager
+    - sqlalchemy
+    - sqlalchemy_utils
