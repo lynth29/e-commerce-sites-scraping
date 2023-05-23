@@ -27,6 +27,9 @@ class ThiTruongSi:
         self.session = Session().session
         self.DATE = str(datetime.date.today())
         self.OBSERVATION = 0
+        # API
+        self.shop_info_api = "https://m.thitruongsi.com/endpoint/v1/user/api/shop/{}"
+        self.shop_feeds_api = "https://m.thitruongsi.com/endpoint/v1/feed/feed/shop:{}"
         # Classes
         self.wr = CSV_write("thitruongsi")
 
@@ -152,42 +155,30 @@ class ThiTruongSi:
                 shop_section = prod_soup.find(
                     "div", class_="border rounded css-1il6ewt"
                 )
-                shop_name = shop_section.find("a").text.strip()
-                row["shop_name"] = shop_name
                 shop_href = shop_section.find("a")["href"]
                 row["shop_href"] = shop_href
-                shop_address = shop_section.find(
-                    "div", class_="css-16yk86w"
-                ).text.strip()
+                # Connect to shop api
+                shop_res = self.session.get(self.shop_info_api.format(shop_href))
+                shop_js = shop_res.json()['data']['shop']
+                shop_name = shop_js['name']
+                row["shop_name"] = shop_name
+                shop_id = shop_js['id']
+                row["shop_id"] = shop_id
+                shop_address = shop_js['shop_province']['name']
                 row["shop_address"] = shop_address
                 if shop_section.find("img") != None:
                     shop_subs = shop_section.find("img")["alt"]
                 else:
                     shop_subs = "Free"
                 row["shop_subs"] = shop_subs
-                shop_stats = shop_section.find("div", class_="css-y4fsjf")
-                shop_stats = shop_stats.find_all("span")
-                shop_join = shop_stats[1].text.strip()
+                shop_join = datetime.datetime.strptime(shop_js['created_at'], "%Y-%m-%dT%H:%M:%S%z")
                 row["shop_join"] = shop_join
-                shop_prods = int(shop_stats[3].text.strip().replace(",", ""))
+                shop_prods = shop_js['total_products']
                 row["shop_prods"] = shop_prods
                 try:
-                    shop_rep_rate = [
-                        int(shop_stats[id + 1].text.strip().split("%")[0]) / 100
-                        for id, i in enumerate(shop_stats)
-                        if i.text.strip() == "Tỷ lệ phản hồi"
-                    ][0]
-                except IndexError:
-                    shop_rep_rate = 0
-                try:
-                    shop_followers = [
-                        int(shop_stats[id + 1].text.strip().replace(",", ""))
-                        for id, i in enumerate(shop_stats)
-                        if i.text.strip() == "Người theo dõi"
-                    ][0]
+                    shop_followers = shop_js['total_following']
                 except IndexError:
                     shop_followers = 0
-                row["shop_rep_rate"] = shop_rep_rate
                 row["shop_followers"] = shop_followers
                 row["cat_l1"] = cat["cat_l1"]
                 row["cat_l2"] = cat["cat_l2"]
