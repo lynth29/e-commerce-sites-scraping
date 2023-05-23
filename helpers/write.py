@@ -44,11 +44,11 @@ class CSV_write:
             "cat_l2",
             "href",
             "shop_name",
+            "shop_id",
             "shop_address",
             "shop_subs",
             "shop_join",
             "shop_prods",
-            "shop_rep_rate",
             "shop_followers",
             "shop_href"
         ]
