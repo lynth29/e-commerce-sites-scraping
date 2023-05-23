@@ -102,7 +102,7 @@ class Session:
 
     def __init__(self):
         self.session = requests.Session()
-        retry = Retry(connect=3, backoff_factor=0.5)
+        retry = Retry(connect=5, backoff_factor=0.8)
         adapter = HTTPAdapter(max_retries=retry)
         self.session.mount('http://', adapter)
         self.session.mount('https://', adapter)
