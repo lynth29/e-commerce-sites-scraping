@@ -23,6 +23,7 @@ from websites.bibomart import *
 from websites.concung import *
 from websites.kidsplaza import *
 from websites.thitruongsi import *
+from websites.topcv import *
 
 
 class Run:
@@ -50,6 +51,9 @@ class Run:
         )
         self.thitruongsi = (
             ThiTruongSi() if "thitruongsi" in self.list_of_sites else None
+        )
+        self.topcv = (
+            TopCV() if "topcv" in self.list_of_sites else None
         )
 
     def daily_crawl(self, site):
@@ -79,6 +83,8 @@ class Run:
             CATEGORIES_PAGES = self.kidsplaza.get_category_list()
         elif site == "thitruongsi":
             CATEGORIES_PAGES = self.thitruongsi.get_category_list()
+        elif site == "topcv":
+            CATEGORIES_PAGES = self.topcv.get_category_list()
         print("Found " + str(len(CATEGORIES_PAGES)) + " categories")
         # Read each categories pages and scrape for data
         for cat in CATEGORIES_PAGES:
@@ -98,6 +104,8 @@ class Run:
                 self.kidsplaza.scrap_data(cat)
             elif site == "thitruongsi":
                 self.thitruongsi.scrap_data(cat)
+            elif site == "topcv":
+                self.topcv.scrap_data(cat)
         # except Exception as e:
         #     print("Got exception, scraper stopped")
         #     print(type(e).__name__ + str(e))
