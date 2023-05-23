@@ -159,24 +159,26 @@ class ThiTruongSi:
                 row["shop_href"] = shop_href
                 # Connect to shop api
                 shop_res = self.session.get(self.shop_info_api.format(shop_href))
-                shop_js = shop_res.json()['data']['shop']
-                shop_name = shop_js['name']
+                shop_js = shop_res.json()["data"]["shop"]
+                shop_name = shop_js["name"]
                 row["shop_name"] = shop_name
-                shop_id = shop_js['id']
+                shop_id = shop_js["id"]
                 row["shop_id"] = shop_id
-                shop_address = shop_js['shop_province']['name']
+                shop_address = shop_js["shop_province"]["name"]
                 row["shop_address"] = shop_address
                 if shop_section.find("img") != None:
                     shop_subs = shop_section.find("img")["alt"]
                 else:
                     shop_subs = "Free"
                 row["shop_subs"] = shop_subs
-                shop_join = datetime.datetime.strptime(shop_js['created_at'], "%Y-%m-%dT%H:%M:%S%z")
+                shop_join = datetime.datetime.strptime(
+                    shop_js["created_at"], "%Y-%m-%dT%H:%M:%S%z"
+                )
                 row["shop_join"] = shop_join
-                shop_prods = shop_js['total_products']
+                shop_prods = shop_js["total_products"]
                 row["shop_prods"] = shop_prods
                 try:
-                    shop_followers = shop_js['total_following']
+                    shop_followers = shop_js["total_following"]
                 except IndexError:
                     shop_followers = 0
                 row["shop_followers"] = shop_followers
@@ -192,5 +194,49 @@ class ThiTruongSi:
             # except Exception:
             #     print(item.find('a')['href'], Exception)
 
-    def scrap_feeds(self, shop_id: str):
+    def scrap_feeds(
+        self, shop: dict, start_time: str = None, end_time: str = None
+    ) -> list:
+        """Crawling feeds from shop"""
+        # Define time range
+        if start_time != None:
+            start_time = datetime.datetime.strptime(start_time, "%Y%m%d")
+        if end_time != None:
+            end_time = datetime.datetime.strptime(end_time, "%Y%m%d")
+        else:
+            end_time = datetime.datetime.today()
+        # Access to shop_feed_api
+        res = self.session.get(self.shop_feeds_api.format(shop["shop_id"]))
+        feeds_data = res.json()
+        # Create a while loop to crawling feeds within time range
+        all_posts = []
+        while True:
+            posts = feeds_data["activities"]
+            for post in posts:
+                post_date = datetime.datetime.strptime(
+                    post["created_at"], "%Y-%m-%dT%H:%M:%S.%fZ"
+                )
+                if start_time < post_date < end_time:
+                    row = {}
+                    row["content"] = post["caption"]
+                    row["like"] = post["reactions"]["like"]
+                    row["comment"] = post["reactions"]["comment"]
+                    row["reach"] = post["reach"]
+                    row["date"] = post_date
+                    row["shop"] = shop["shop_name"]
+                    row["shop_id"] = shop["shop_id"]
+                    all_posts.append(row)
+            oldest_post_time = datetime.datetime.strptime(
+                feeds_data["activities"][-1]["created_at"], "%Y-%m-%dT%H:%M:%S.%fZ"
+            )
+            if (start_time != None) & (oldest_post_time < start_time):
+                break
+            next_page = self.session.get(feeds_data["paging"]["previous"])
+            feeds_data = next_page.json()
+        return all_posts
+
+    def compile_feeds(self, shop_db: dict):
+        pass
+
+    def create_shop_db(self):
         pass
