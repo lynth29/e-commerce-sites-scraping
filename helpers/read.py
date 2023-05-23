@@ -17,7 +17,7 @@ PROJECT_PATH = Path(__file__).absolute().parents[1]
 
 # Define classes
 class CSV_read:
-    def __init__(self, site_name):
+    def __init__(self, site_name: str):
         # Set output
         self.SITE_NAME = site_name
         self.PATH_CSV = os.path.join(PROJECT_PATH, "csv", self.SITE_NAME)

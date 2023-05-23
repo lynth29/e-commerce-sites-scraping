@@ -28,12 +28,12 @@ class ThiTruongSi:
         self.DATE = str(datetime.date.today())
         self.OBSERVATION = 0
         # API
-        self.shop_info_api = "https://m.thitruongsi.com/endpoint/v1/user/api/shop/{}"
+        self.shop_info_api = "https://m.thitruongsi.com/endpoint/v1/user/api{}"
         self.shop_feeds_api = "https://m.thitruongsi.com/endpoint/v1/feed/feed/shop:{}"
         # Classes
         self.wr = CSV_write("thitruongsi")
 
-    def get_category_list(self):
+    def get_category_list(self) -> list:
         """Get list of relative categories directories from thitruongsi.com"""
         # Get category level 1 dictionary
         cat_l1_dict = self.session.get(
@@ -66,7 +66,7 @@ class ThiTruongSi:
             page_list.append(next_page)
         return page_list
 
-    def scrap_data(self, cat):
+    def scrap_data(self, cat: dict):
         """Get item data from a category page and self.write to csv"""
         # Get all products
         print(f"Crawling {cat['cat_l2']}")
@@ -191,3 +191,6 @@ class ThiTruongSi:
                 pass
             # except Exception:
             #     print(item.find('a')['href'], Exception)
+
+    def scrap_feeds(self, shop_id: str):
+        pass

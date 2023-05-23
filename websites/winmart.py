@@ -60,7 +60,7 @@ class Winmart:
             By.XPATH, "//span[contains(text(),'P. Minh Khai')]"
         ).click()  # Minh Khai
 
-    def get_category_list(self):
+    def get_category_list(self) -> list:
         """Get list of relative categories directories from winmart.vn"""
         # Access to browser
         self.BROWSER.get(self.BASE_URL)
@@ -91,7 +91,7 @@ class Winmart:
                 page_list.append(next_page)
         return page_list
 
-    def scrap_data(self, cat):
+    def scrap_data(self, cat: dict):
         """Get item data from a category page and self.write to csv"""
         # try:
         # Get all products appeared by scrolling

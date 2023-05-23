@@ -44,7 +44,7 @@ class TopCV:
         # Classes
         self.wr = CSV_write("topcv")
 
-    def get_category_list(self):
+    def get_category_list(self) -> list:
         page_list = []
         for j in self.jobs:
             row = {}
@@ -55,7 +55,7 @@ class TopCV:
             page_list.append(row)
         return page_list
 
-    def scrap_data(self, cat):
+    def scrap_data(self, cat: dict):
         """Get item data from a category page and self.write to csv"""
         # Get all products
         print(f"Crawling {cat['name']}")

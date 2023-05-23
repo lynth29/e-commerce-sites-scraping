@@ -20,7 +20,7 @@ PROJECT_PATH = Path(__file__).absolute().parents[1]
 
 # Define classes
 class CSV_write:
-    def __init__(self, site_name):
+    def __init__(self, site_name: str):
         # Set output
         self.SITE_NAME = site_name
         self.PATH_CSV = os.path.join(PROJECT_PATH, "csv", self.SITE_NAME)
@@ -67,7 +67,7 @@ class CSV_write:
             "href"
         ]
 
-    def write_data(self, item_data):
+    def write_data(self, item_data: dict):
         """Write an item data as a row in csv. Create new file if needed"""
         file_exists = os.path.isfile(
             os.path.join(self.PATH_CSV, self.SITE_NAME + "_" + self.DATE + ".csv")
@@ -104,3 +104,11 @@ class CSV_write:
             print("Error when compressing csv")
             print(type(e).__name__ + str(e))
         os.chdir(PROJECT_PATH)
+
+class MySQLWrite:
+
+    def __init__(self) -> None:
+        pass
+
+    def write_data(self, item_data: dict):
+        pass

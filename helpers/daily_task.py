@@ -27,7 +27,7 @@ from websites.topcv import *
 
 
 class Run:
-    def __init__(self, list_of_sites):
+    def __init__(self, list_of_sites: list):
         self.list_of_sites = list_of_sites
         # Driver
         self.driver = ChromeDriver().normal_driver()
@@ -56,7 +56,7 @@ class Run:
             TopCV() if "topcv" in self.list_of_sites else None
         )
 
-    def daily_crawl(self, site):
+    def daily_crawl(self, site: str):
         """Main workhorse function. Support functions defined below"""
         # Scrape
         # try:

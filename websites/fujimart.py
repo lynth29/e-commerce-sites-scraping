@@ -32,7 +32,7 @@ class FujiMart:
         # Classes
         self.wr = CSV_write("fujimart")
 
-    def get_category_list(self):
+    def get_category_list(self) -> list:
         """Get list of relative categories directories from the top page"""
         # Access to browser
         res = requests.get(self.BASE_URL)
@@ -53,7 +53,7 @@ class FujiMart:
         page_list = [dict(t) for t in set(tuple(i.items()) for i in page_list)]
         return page_list
 
-    def scrap_data(self, cat):
+    def scrap_data(self, cat: dict):
         """Get item data from a category page and self.write to csv"""
         # Access
         res = requests.get(cat["href"] + "?limit=100")
