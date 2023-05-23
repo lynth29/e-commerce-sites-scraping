@@ -88,6 +88,7 @@ class ThiTruongSi:
             items = items.find_all("div", class_="item")
             items_list.extend(items)
         print("Found " + str(len(items_list)) + " products")
+        items_list = random.choices(items_list, k=100)
         # Get information of each item
         for item in items_list:
             try:
