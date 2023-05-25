@@ -17,7 +17,8 @@ class ConnectMySQL:
     def create_sql_engine(self):
         # load credentials and connect to database
         try:
-            engine = sqlalchemy.create_engine(f'mysql+pymysql://{self.user}:{self.password}@{self.host}:{self.port}/{self.db}')
+            engine = sqlalchemy.create_engine(f'mysql://{self.user}:{self.password}@{self.host}:{self.port}/{self.db}')
+            print(f'mysql://{self.user}:{self.password}@{self.host}:{self.port}/{self.db}')
         except:
             raise Exception('Could not connect to host. Please check your credentials or internet connection.')
 
