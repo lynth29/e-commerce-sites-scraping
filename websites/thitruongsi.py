@@ -30,6 +30,9 @@ class ThiTruongSi:
         # API
         self.shop_info_api = "https://m.thitruongsi.com/endpoint/v1/user/api{}"
         self.shop_feeds_api = "https://m.thitruongsi.com/endpoint/v1/feed/feed/shop:{}"
+        self.price_ask_api = (
+            "https://m.thitruongsi.com/endpoint/v2/rfq/api/rfqs.json?limit={}"
+        )
         # Classes
         self.wr = CSV_write("thitruongsi")
 
@@ -91,7 +94,10 @@ class ThiTruongSi:
             items = items.find_all("div", class_="item")
             items_list.extend(items)
         print("Found " + str(len(items_list)) + " products")
-        items_list = random.choices(items_list, k=100)
+        try:
+            items_list = random.choices(items_list, k=100)
+        except IndexError:
+            items_list = random.choices(items_list, k=len(items_list))
         # Get information of each item
         for item in items_list:
             try:
@@ -193,50 +199,153 @@ class ThiTruongSi:
                 pass
             # except Exception:
             #     print(item.find('a')['href'], Exception)
-
+ 
+    def create_shop_db(self, product_data) -> list:
+        shop_df = pd.read_csv(product_data)
+        shop_df = shop_df[
+            [
+                "shop_name",
+                "shop_id",
+                "shop_address",
+                "shop_subs",
+                "shop_join",
+                "shop_prods",
+                "shop_followers",
+                "shop_href",
+            ]
+        ]
+        shop_df = shop_df.drop_duplicates("shop_id")
+        shop_db = shop_df.to_dict("records")
+        return shop_db
+ 
     def scrap_feeds(
-        self, shop: dict, start_time: str = None, end_time: str = None
+        self,
+        shop: dict,
+        start_time: str = None,
+        end_time: str = None,
+        days_diff: int = None,
     ) -> list:
         """Crawling feeds from shop"""
+        print(f"Scraping feeds of shop {shop['shop_name']}")
         # Define time range
-        if start_time != None:
-            start_time = datetime.datetime.strptime(start_time, "%Y%m%d")
         if end_time != None:
             end_time = datetime.datetime.strptime(end_time, "%Y%m%d")
         else:
             end_time = datetime.datetime.today()
+        if start_time != None:
+            start_time = datetime.datetime.strptime(start_time, "%Y%m%d")
+        elif days_diff != None:
+            start_time = end_time - datetime.timedelta(days=days_diff)
         # Access to shop_feed_api
         res = self.session.get(self.shop_feeds_api.format(shop["shop_id"]))
         feeds_data = res.json()
         # Create a while loop to crawling feeds within time range
         all_posts = []
         while True:
-            posts = feeds_data["activities"]
-            for post in posts:
-                post_date = datetime.datetime.strptime(
-                    post["created_at"], "%Y-%m-%dT%H:%M:%S.%fZ"
+            try:
+                posts = feeds_data["activities"]
+                for post in posts:
+                    post_date = datetime.datetime.strptime(
+                        post["created_at"], "%Y-%m-%dT%H:%M:%S.%fZ"
+                    )
+                    if start_time < post_date < end_time:
+                        row = {}
+                        row["content"] = post["caption"]
+                        row["like"] = post["reactions"]["like"]
+                        row["comment"] = post["reactions"]["comment"]
+                        row["reach"] = post["reach"]
+                        row["date"] = post_date
+                        row["shop"] = shop["shop_name"]
+                        row["shop_id"] = shop["shop_id"]
+                        all_posts.append(row)
+                oldest_post_time = datetime.datetime.strptime(
+                    feeds_data["activities"][-1]["created_at"], "%Y-%m-%dT%H:%M:%S.%fZ"
                 )
-                if start_time < post_date < end_time:
-                    row = {}
-                    row["content"] = post["caption"]
-                    row["like"] = post["reactions"]["like"]
-                    row["comment"] = post["reactions"]["comment"]
-                    row["reach"] = post["reach"]
-                    row["date"] = post_date
-                    row["shop"] = shop["shop_name"]
-                    row["shop_id"] = shop["shop_id"]
-                    all_posts.append(row)
-            oldest_post_time = datetime.datetime.strptime(
-                feeds_data["activities"][-1]["created_at"], "%Y-%m-%dT%H:%M:%S.%fZ"
-            )
-            if (start_time != None) & (oldest_post_time < start_time):
+                if (start_time != None) & (oldest_post_time < start_time):
+                    break
+                next_page = self.session.get(feeds_data["paging"]["previous"])
+                feeds_data = next_page.json()
+            except KeyError:
+                print(shop["shop_name"], shop["shop_id"])
                 break
-            next_page = self.session.get(feeds_data["paging"]["previous"])
-            feeds_data = next_page.json()
+            except IndexError:
+                print(
+                    f"Shop {shop['shop_name']} doesn't update anything on their feeds."
+                )
+                break
         return all_posts
 
-    def compile_feeds(self, shop_db: dict):
-        pass
+    def create_feeds_db(
+        self,
+        shop_db: list,
+        start_time: str = None,
+        end_time: str = None,
+        days_diff: int = None,
+    ):
+        feeds_db = []
+        for shop in shop_db:
+            feeds_db.extend(
+                self.scrap_feeds(
+                    shop, start_time=start_time, end_time=end_time, days_diff=days_diff
+                )
+            )
+        feeds_df = pd.DataFrame(feeds_db)
+        feeds_df.to_csv("feeds_db.csv", index=False)
 
-    def create_shop_db(self):
-        pass
+    def scrap_price_ask(
+        self,
+        limit: int = 100,
+        start_time: str = None,
+        end_time: str = None,
+        days_diff: int = None,
+    ) -> list:
+        # Define time range
+        if end_time != None:
+            end_time = datetime.datetime.strptime(end_time, "%Y%m%d")
+        else:
+            end_time = datetime.datetime.today()
+        if start_time != None:
+            start_time = datetime.datetime.strptime(start_time, "%Y%m%d")
+        elif days_diff != None:
+            start_time = end_time - datetime.timedelta(days=days_diff)
+        # Access to shop_feed_api
+        while True:
+            res = self.session.get(self.price_ask_api.format(limit))
+            quotation = res.json()["rfqs"]
+            oldest_quote_time = datetime.datetime.strptime(
+                quotation[-1]["created_at"], "%Y-%m-%dT%H:%M:%S.%fZ"
+            )
+            if oldest_quote_time >= start_time:
+                limit += 100
+            else:
+                break
+        print(f"There are total {len(quotation)} quotations from {start_time} to {end_time} with limit as {limit}")
+        # Create a while loop to crawling feeds within time range
+        all_quotations = []
+        for q in quotation:
+            quote_date = datetime.datetime.strptime(
+                q["created_at"], "%Y-%m-%dT%H:%M:%S.%fZ"
+            )
+            if start_time < quote_date < end_time:
+                row = {}
+                row["id"] = q["id"]
+                row["title"] = q["title"]
+                row["l1"] = q["category_lv1_title"]
+                row["l2"] = q["category_lv2_title"]
+                row["quote_count"] = q["quote_count"]
+                all_quotations.append(row)
+        return all_quotations
+
+    def create_quotation_db(
+        self,
+        limit: int = 100,
+        start_time: str = None,
+        end_time: str = None,
+        days_diff: int = None,
+    ):
+        all_quotation = self.scrap_price_ask(
+            limit=limit, start_time=start_time, end_time=end_time, days_diff=days_diff
+        )
+        quotation_df = pd.DataFrame(all_quotation)
+        quotation_df = quotation_df.drop_duplicates("id")
+        quotation_df.to_csv("quotation_db.csv", index=False)
