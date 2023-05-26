@@ -173,7 +173,17 @@ class ThiTruongSi:
                 shop_address = shop_js["shop_province"]["name"]
                 row["shop_address"] = shop_address
                 if shop_section.find("img") != None:
-                    shop_subs = shop_section.find("img")["alt"]
+                    shop_subs = shop_section.find("img")["scr"]
+                    if (
+                        shop_subs
+                        == "https://thitruongsi.com/static/images/shop/icon_business_small.png"
+                    ):
+                        shop_subs = "Doanh Nghiep"
+                    elif (
+                        shop_subs
+                        == "https://thitruongsi.com/static/images/shop/icon_vip3.png"
+                    ):
+                        shop_subs = "VIP"
                 else:
                     shop_subs = "Free"
                 row["shop_subs"] = shop_subs
@@ -199,7 +209,7 @@ class ThiTruongSi:
                 pass
             # except Exception:
             #     print(item.find('a')['href'], Exception)
- 
+
     def create_shop_db(self, product_data) -> list:
         shop_df = pd.read_csv(product_data)
         shop_df = shop_df[
@@ -217,7 +227,7 @@ class ThiTruongSi:
         shop_df = shop_df.drop_duplicates("shop_id")
         shop_db = shop_df.to_dict("records")
         return shop_db
- 
+
     def scrap_feeds(
         self,
         shop: dict,
@@ -250,7 +260,7 @@ class ThiTruongSi:
                     )
                     if start_time < post_date < end_time:
                         row = {}
-                        row["content"] = post["caption"]
+                        row["post_id"] = post["caption"]
                         row["like"] = post["reactions"]["like"]
                         row["comment"] = post["reactions"]["comment"]
                         row["reach"] = post["reach"]
@@ -319,7 +329,9 @@ class ThiTruongSi:
                 limit += 100
             else:
                 break
-        print(f"There are total {len(quotation)} quotations from {start_time} to {end_time} with limit as {limit}")
+        print(
+            f"There are total {len(quotation)} quotations from {start_time} to {end_time} with limit as {limit}"
+        )
         # Create a while loop to crawling feeds within time range
         all_quotations = []
         for q in quotation:
@@ -333,6 +345,8 @@ class ThiTruongSi:
                 row["l1"] = q["category_lv1_title"]
                 row["l2"] = q["category_lv2_title"]
                 row["quote_count"] = q["quote_count"]
+                row["date"] = quote_date
+                row["user_id"] = q["user_id"]
                 all_quotations.append(row)
         return all_quotations
 

@@ -15,7 +15,6 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 ## Write to data
 import csv
 import pandas as pd
-from connect_to_mysql import *
 
 # Parameters
 PROJECT_PATH = Path(__file__).absolute().parents[1]
@@ -107,9 +106,9 @@ class CSV_write:
             print(type(e).__name__ + str(e))
         os.chdir(PROJECT_PATH)
 
-class MySQLWrite:
+# class MySQLWrite:
 
-    def write_data(self, item_data, table_name: str):
-        engine = ConnectMySQL().create_sql_engine()
-        data = pd.read_csv(item_data)
-        data.to_sql(table_name, engine, index=False, if_exists='replace')
+#     def write_data(self, item_data, table_name: str):
+#         engine = ConnectMySQL().create_sql_engine()
+#         data = pd.read_csv(item_data)
+#         data.to_sql(table_name, engine, index=False, if_exists='replace')
