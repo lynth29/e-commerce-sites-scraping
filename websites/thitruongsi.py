@@ -98,6 +98,9 @@ class ThiTruongSi:
             items_list = random.choices(items_list, k=100)
         except IndexError:
             items_list = random.choices(items_list, k=len(items_list))
+        # Define a list of scrapped shops
+        scrapped_shops = []
+        shop_db = []
         # Get information of each item
         for item in items_list:
             try:
@@ -163,41 +166,16 @@ class ThiTruongSi:
                 )
                 shop_href = shop_section.find("a")["href"]
                 row["shop_href"] = shop_href
-                # Connect to shop api
-                shop_res = self.session.get(self.shop_info_api.format(shop_href))
-                shop_js = shop_res.json()["data"]["shop"]
-                shop_name = shop_js["name"]
-                row["shop_name"] = shop_name
-                shop_id = shop_js["id"]
-                row["shop_id"] = shop_id
-                shop_address = shop_js["shop_province"]["name"]
-                row["shop_address"] = shop_address
-                if shop_section.find("img") != None:
-                    shop_subs = shop_section.find("img")["scr"]
-                    if (
-                        shop_subs
-                        == "https://thitruongsi.com/static/images/shop/icon_business_small.png"
-                    ):
-                        shop_subs = "Doanh Nghiep"
-                    elif (
-                        shop_subs
-                        == "https://thitruongsi.com/static/images/shop/icon_vip3.png"
-                    ):
-                        shop_subs = "VIP"
+                # Connect to shop api and scrap shop_info
+                if shop_href not in scrapped_shops:
+                    shop_result = self.scrap_shop(shop_href)
+                    shop_db.append(shop_result)
+                    scrapped_shops.append(shop_href)
+                    row["shop_id"] = shop_result["shop_id"]
                 else:
-                    shop_subs = "Free"
-                row["shop_subs"] = shop_subs
-                shop_join = datetime.datetime.strptime(
-                    shop_js["created_at"], "%Y-%m-%dT%H:%M:%S%z"
-                )
-                row["shop_join"] = shop_join
-                shop_prods = shop_js["total_products"]
-                row["shop_prods"] = shop_prods
-                try:
-                    shop_followers = shop_js["total_following"]
-                except IndexError:
-                    shop_followers = 0
-                row["shop_followers"] = shop_followers
+                    row["shop_id"] = [
+                        i["shop_id"] for i in shop_db if i["shop_href"] == shop_href
+                    ][0]
                 row["cat_l1"] = cat["cat_l1"]
                 row["cat_l2"] = cat["cat_l2"]
                 self.OBSERVATION += 1
@@ -210,23 +188,54 @@ class ThiTruongSi:
             # except Exception:
             #     print(item.find('a')['href'], Exception)
 
-    def create_shop_db(self, product_data) -> list:
-        shop_df = pd.read_csv(product_data)
-        shop_df = shop_df[
-            [
-                "shop_name",
-                "shop_id",
-                "shop_address",
-                "shop_subs",
-                "shop_join",
-                "shop_prods",
-                "shop_followers",
-                "shop_href",
-            ]
-        ]
-        shop_df = shop_df.drop_duplicates("shop_id")
-        shop_db = shop_df.to_dict("records")
-        return shop_db
+    def scrap_shop(self, shop_user: str) -> dict:
+        # Connect to shop api
+        shop_res = self.session.get(self.shop_info_api.format(shop_user))
+        shop_js = shop_res.json()["data"]["shop"]
+        # Define a dictionary
+        row = {}
+        # Get shop data
+        row["shop_name"] = shop_js["name"]
+        row["shop_id"] = shop_js["id"]
+        row["shop_address"] = shop_js["shop_province"]["name"]
+        row["shop_join"] = datetime.datetime.strptime(
+            shop_js["created_at"], "%Y-%m-%dT%H:%M:%S%z"
+        )
+        # Get owner data
+        row["owner_last_name"] = shop_js["owner"]["last_name"]
+        row["owner_first_name"] = shop_js["owner"]["first_name"]
+        row["owner_create_account"] = datetime.datetime.strptime(
+            shop_js["owner"]["created_at"], "%Y-%m-%dT%H:%M:%S%z"
+        )
+        row["owner_email"] = shop_js["email"]
+        row["owner_phone"] = shop_js["owner"]["phone_number"]
+        row["owner_address"] = shop_js["owner"]["full_address"]
+        row["owner_last_login"] = shop_js["owner"]["last_login"]
+        row["owner_last_active"] = shop_js["owner"]["last_active"]
+        # Get statistic data
+        row["shop_response"] = shop_js["response_rate"]
+        row["shop_prods"] = shop_js["total_products"]
+        try:
+            row["shop_followers"] = shop_js["total_following"]
+        except IndexError:
+            row["shop_followers"] = 0
+        # Get subscription data
+        row["shop_mall"] = shop_js["mall"]
+        shop_subs = shop_js["is_vip"]
+        if shop_subs == 0:
+            row["shop_subs"] = "Free"
+        else:
+            if shop_js["is_business"] is True:
+                row["shop_subs"] = "Doanh Nghiệp"
+            else:
+                row["shop_subs"] = "VIP"
+        row["shop_href"] = shop_user
+        return row
+
+    def create_shop_db(self, product_data):
+        shop_df = pd.DataFrame(product_data)
+        shop_df = shop_df.drop_duplicates("shop_href")
+        shop_df.to_csv("shop_db.csv", index=False)
 
     def scrap_feeds(
         self,

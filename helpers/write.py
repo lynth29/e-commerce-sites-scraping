@@ -44,13 +44,7 @@ class CSV_write:
             "cat_l1",
             "cat_l2",
             "href",
-            "shop_name",
             "shop_id",
-            "shop_address",
-            "shop_subs",
-            "shop_join",
-            "shop_prods",
-            "shop_followers",
             "shop_href"
         ]
         self.hr_fieldnames = [
