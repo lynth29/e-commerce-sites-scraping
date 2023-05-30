@@ -187,6 +187,7 @@ class ThiTruongSi:
                 pass
             # except Exception:
             #     print(item.find('a')['href'], Exception)
+        self.create_shop_db(shop_db)
 
     def scrap_shop(self, shop_user: str) -> dict:
         # Connect to shop api
