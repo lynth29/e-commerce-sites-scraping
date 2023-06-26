@@ -30,7 +30,12 @@ class CSV_write:
         # Set fieldnames
         self.fieldnames = [
             "product_name",
+            "alt_name",
+            "price",
             "brand",
+            "barcode",
+            "image",
+            "volume",
             "cat_l1",
             "cat_l2",
             "cat_l3",
