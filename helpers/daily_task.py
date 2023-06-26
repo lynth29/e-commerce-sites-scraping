@@ -15,14 +15,19 @@ from helpers.crawl import *
 # from helpers.logging import *
 from helpers.write import *
 from helpers.read import *
+# FMCG
 from websites.winmart import *
 from websites.coop import *
 from websites.bachhoaxanh import *
 from websites.fujimart import *
+# Mom and baby
 from websites.bibomart import *
 from websites.concung import *
 from websites.kidsplaza import *
+# Cosmetics
 from websites.hasaki import *
+from websites.cocoshop import *
+# Others
 from websites.thitruongsi import *
 from websites.topcv import *
 
@@ -54,6 +59,7 @@ class Run:
         )
         # Cosmetics
         self.hasaki = Hasaki() if "hasaki" in self.list_of_sites else None
+        self.cocoshop = Cocoshop() if "cocoshop" in self.list_of_sites else None
         # Others
         self.thitruongsi = (
             ThiTruongSi() if "thitruongsi" in self.list_of_sites else None
@@ -92,6 +98,8 @@ class Run:
         # Cosmetics
         elif site == "hasaki":
             CATEGORIES_PAGES = self.hasaki.get_category_list()
+        elif site == "cocoshop":
+            CATEGORIES_PAGES = self.cocoshop.get_category_list()
         # Others
         elif site == "thitruongsi":
             CATEGORIES_PAGES = self.thitruongsi.get_category_list()
@@ -119,6 +127,8 @@ class Run:
             # Cosmetics
             elif site == "hasaki":
                 self.hasaki.scrap_data(cat)
+            elif site == "cocoshop":
+                self.cocoshop.scrap_data(cat)
             # Others
             elif site == "thitruongsi":
                 self.thitruongsi.scrap_data(cat)
