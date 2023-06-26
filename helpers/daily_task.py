@@ -22,6 +22,7 @@ from websites.fujimart import *
 from websites.bibomart import *
 from websites.concung import *
 from websites.kidsplaza import *
+from websites.hasaki import *
 from websites.thitruongsi import *
 from websites.topcv import *
 
@@ -32,6 +33,7 @@ class Run:
         # Driver
         self.driver = ChromeDriver().normal_driver()
         # Classes
+        # FMCG
         self.win = (
             Winmart(ChromeDriver().show_driver())
             if "win" in self.list_of_sites
@@ -44,11 +46,15 @@ class Run:
         self.fujimart = (
             FujiMart(self.driver) if "fujimart" in self.list_of_sites else None
         )
+        # Mom and baby
         self.bibomart = BiboMart() if "bibomart" in self.list_of_sites else None
         self.concung = ConCung() if "concung" in self.list_of_sites else None
         self.kidsplaza = (
             KidsPlaza(self.driver) if "kidsplaza" in self.list_of_sites else None
         )
+        # Cosmetics
+        self.hasaki = Hasaki() if "hasaki" in self.list_of_sites else None
+        # Others
         self.thitruongsi = (
             ThiTruongSi() if "thitruongsi" in self.list_of_sites else None
         )
@@ -67,6 +73,7 @@ class Run:
             # self.coop.choose_location()
             self.coop.disable_sub()
         # Get categories directories
+        # FMCG
         if site == "winmart":
             CATEGORIES_PAGES = self.win.get_category_list()
         elif site == "coop":
@@ -75,12 +82,17 @@ class Run:
             CATEGORIES_PAGES = self.bachhoaxanh.get_category_list()
         elif site == "fujimart":
             CATEGORIES_PAGES = self.fujimart.get_category_list()
+        # Mom and baby
         elif site == "bibomart":
             CATEGORIES_PAGES = self.bibomart.get_category_list()
         elif site == "concung":
             CATEGORIES_PAGES = self.concung.get_category_list()
         elif site == "kidsplaza":
             CATEGORIES_PAGES = self.kidsplaza.get_category_list()
+        # Cosmetics
+        elif site == "hasaki":
+            CATEGORIES_PAGES = self.hasaki.get_category_list()
+        # Others
         elif site == "thitruongsi":
             CATEGORIES_PAGES = self.thitruongsi.get_category_list()
         elif site == "topcv":
@@ -88,6 +100,7 @@ class Run:
         print("Found " + str(len(CATEGORIES_PAGES)) + " categories")
         # Read each categories pages and scrape for data
         for cat in CATEGORIES_PAGES:
+            # FMCG
             if site == "winmart":
                 self.win.scrap_data(cat)
             elif site == "coop":
@@ -96,12 +109,17 @@ class Run:
                 self.bachhoaxanh.scrap_data(cat)
             elif site == "fujimart":
                 self.fujimart.scrap_data(cat)
+            # Mom and baby
             elif site == "bibomart":
                 self.bibomart.scrap_data(cat)
             elif site == "concung":
                 self.concung.scrap_data(cat)
             elif site == "kidsplaza":
                 self.kidsplaza.scrap_data(cat)
+            # Cosmetics
+            elif site == "hasaki":
+                self.hasaki.scrap_data(cat)
+            # Others
             elif site == "thitruongsi":
                 self.thitruongsi.scrap_data(cat)
             elif site == "topcv":
