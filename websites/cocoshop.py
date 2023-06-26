@@ -63,12 +63,15 @@ class Cocoshop:
         cat_soup = BeautifulSoup(cat_res.content, features="lxml")
         # Get page number
         page_holder = cat_soup.find('ul', class_='pagination')
-        page = page_holder.find_all('li')[-2].text.strip()
+        try:
+            page = page_holder.find_all('li')[-2].text.strip()
+        except AttributeError:
+            page = 1
         # Get all products by going through each page
         items_list = []
-        for i in range(page):
+        for i in range(int(page)):
             if i >= 1:
-                cat_res = self.session.get(f"{cat['href']}page-{str(i+1)}/")
+                cat_res = self.session.get(f"{self.BASE_URL}{cat['href']}page-{str(i+1)}/")
                 cat_soup = BeautifulSoup(cat_res.content, features="lxml")
             items = cat_soup.find_all('div', class_='col-sm-12 col-md-6')
             items_list.extend(items)
@@ -78,7 +81,9 @@ class Cocoshop:
             try:
                 row = {}
                 # Get soup
-                prod_res = self.session.get(item)
+                href = item.find('a')['href']
+                row["href"] = href
+                prod_res = self.session.get(self.BASE_URL + href)
                 prod_soup = BeautifulSoup(prod_res.content, features="lxml")
                 # Product name
                 name = prod_soup.find('h1', attrs={'id': 'titlepro2'}).text.strip()
@@ -91,7 +96,8 @@ class Cocoshop:
                 # Brand
                 try:
                     brand = prod_soup.find('strong', text=re.compile('Thương hiệu')).next_sibling.replace('\xa0','')
-                except TypeError:
+                    brand = brand.strip()
+                except (TypeError, AttributeError):
                     brand = ""
                 row["brand"] = brand
                 # Barcode
@@ -104,13 +110,13 @@ class Cocoshop:
                 # Volume
                 try:
                     volume = prod_soup.find('strong', text=re.compile('Trọng lượng')).next_sibling.replace('\xa0','')
-                except TypeError:
+                    volume = volume.strip()
+                except (TypeError, AttributeError):
                     volume = ""
                 row["volume"] = volume
                 # Others
                 row["cat_l1"] = cat["cat_l1"]
                 row["cat_l2"] = cat["cat_l2"]
-                row["href"] = item
                 self.OBSERVATION += 1
                 self.wr.write_data(row)
                 time.sleep(1)
