@@ -128,6 +128,7 @@ class Hasaki:
                 row["volume"] = volume
                 row["cat_l1"] = cat["cat_l1"]
                 row["cat_l2"] = cat["cat_l2"]
+                row["cat_l3"] = cat["cat_l3"]
                 row["href"] = prod_json["url"]
                 self.OBSERVATION += 1
                 self.wr.write_data(row)
