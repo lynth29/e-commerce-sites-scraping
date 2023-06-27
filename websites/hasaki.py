@@ -115,11 +115,7 @@ class Hasaki:
                 row["barcode"] = barcode
                 # Image
                 try:
-                    image = (
-                        prod_json["gallery"][2]
-                        if "youtube" in prod_json["gallery"][0]
-                        else prod_json["gallery"][1]
-                    )
+                    image = prod_json["gallery"]
                 except IndexError:
                     image = ""
                 row["image"] = image
