@@ -19,9 +19,10 @@ import pandas as pd
 # Parameters
 PROJECT_PATH = Path(__file__).absolute().parents[1]
 
+
 # Define classes
 class CSV_write:
-    def __init__(self, site_name: str):
+    def __init__(self, site_name: str, fieldname_option: str = None):
         # Set output
         self.SITE_NAME = site_name
         self.PATH_CSV = os.path.join(PROJECT_PATH, "csv", self.SITE_NAME)
@@ -30,15 +31,18 @@ class CSV_write:
         # Set fieldnames
         self.fieldnames = [
             "product_name",
-            "alt_name",
-            "price",
-            "brand",
-            "barcode",
             "image",
-            "volume",
+            "cat_l0",
             "cat_l1",
             "cat_l2",
             "cat_l3",
+            "barcode",
+            "brand",
+            "manufacturer",
+            "capacity",
+            "effect",
+            "price",
+            "source",
             "href",
         ]
         self.tts_fieldnames = [
@@ -50,7 +54,7 @@ class CSV_write:
             "cat_l2",
             "href",
             "shop_id",
-            "shop_href"
+            "shop_href",
         ]
         self.hr_fieldnames = [
             "job_name",
@@ -64,7 +68,7 @@ class CSV_write:
             "description",
             "requirements",
             "benefits",
-            "href"
+            "href",
         ]
 
     def write_data(self, item_data: dict):
@@ -79,9 +83,9 @@ class CSV_write:
             "a",
             encoding="utf-8",
         ) as f:
-            if self.SITE_NAME == 'thitruongsi':
+            if self.SITE_NAME == "thitruongsi":
                 field = self.tts_fieldnames
-            elif self.SITE_NAME in ('topcv'):
+            elif self.SITE_NAME in ("topcv"):
                 field = self.hr_fieldnames
             else:
                 field = self.fieldnames
@@ -104,6 +108,7 @@ class CSV_write:
             print("Error when compressing csv")
             print(type(e).__name__ + str(e))
         os.chdir(PROJECT_PATH)
+
 
 # class MySQLWrite:
 

@@ -35,7 +35,7 @@ class Hasaki:
         self.wr = CSV_write("hasaki")
 
     def get_category_list(self) -> list:
-        """Get list of relative categories directories from thitruongsi.com"""
+        """Get list of relative categories directories from hasaki.vn"""
         # Send request to home_api
         home_res = self.session.get(self.home_api)
         home_json = home_res.json()
@@ -43,35 +43,36 @@ class Hasaki:
         # Create an empty list to store categories' information
         page_list = []
         for cat in cat_bar:
-            if "child" in cat.keys():
-                cat_child = cat["child"]
-                for l2 in cat_child:
-                    if "child" in l2.keys():
-                        cat_grandchild = l2["child"]
-                        for l3 in cat_grandchild:
+            if cat["name"] != "Mỹ Phẩm High-End":
+                if "child" in cat.keys():
+                    cat_child = cat["child"]
+                    for l2 in cat_child:
+                        if "child" in l2.keys():
+                            cat_grandchild = l2["child"]
+                            for l3 in cat_grandchild:
+                                next_page = {}
+                                next_page["cat_l1"] = cat["name"]
+                                next_page["cat_l2"] = l2["name"]
+                                next_page["cat_l3"] = l3["name"]
+                                next_page["id"] = l3["id"]
+                                next_page["href"] = l3["url"]
+                                page_list.append(next_page)
+                        else:
                             next_page = {}
                             next_page["cat_l1"] = cat["name"]
                             next_page["cat_l2"] = l2["name"]
-                            next_page["cat_l3"] = l3["name"]
-                            next_page["id"] = l3["id"]
-                            next_page["href"] = l3["url"]
+                            next_page["cat_l3"] = ""
+                            next_page["id"] = l2["id"]
+                            next_page["href"] = l2["url"]
                             page_list.append(next_page)
-                    else:
-                        next_page = {}
-                        next_page["cat_l1"] = cat["name"]
-                        next_page["cat_l2"] = l2["name"]
-                        next_page["cat_l3"] = ""
-                        next_page["id"] = l2["id"]
-                        next_page["href"] = l2["url"]
-                        page_list.append(next_page)
-            else:
-                next_page = {}
-                next_page["cat_l1"] = cat["name"]
-                next_page["cat_l2"] = ""
-                next_page["cat_l3"] = ""
-                next_page["id"] = cat["id"]
-                next_page["href"] = cat["url"]
-                page_list.append(next_page)
+                else:
+                    next_page = {}
+                    next_page["cat_l1"] = cat["name"]
+                    next_page["cat_l2"] = ""
+                    next_page["cat_l3"] = ""
+                    next_page["id"] = cat["id"]
+                    next_page["href"] = cat["url"]
+                    page_list.append(next_page)
         # pd.DataFrame(page_list).to_csv('test.csv')
         return page_list
 
@@ -102,29 +103,64 @@ class Hasaki:
                 # Product name
                 name = prod_json["name"]
                 row["product_name"] = name
-                alt_name = prod_json["alt_name"]
-                row["alt_name"] = alt_name
-                # Price
-                price = prod_json["price"]
-                row["price"] = price
-                # Brand
-                brand = prod_json["brand"]["name"]
-                row["brand"] = brand
-                # Barcode
-                barcode = prod_json["attribute_show"][0]["val"]
-                row["barcode"] = barcode
                 # Image
                 try:
-                    image = prod_json["gallery"]
+                    image = prod_json["gallery"][-2]
                 except IndexError:
                     image = ""
                 row["image"] = image
-                # Volume
-                volume = prod_json["variant"]
-                row["volume"] = volume
+                # Category
+                row["cat_l0"] = "Mỹ phẩm"
                 row["cat_l1"] = cat["cat_l1"]
                 row["cat_l2"] = cat["cat_l2"]
                 row["cat_l3"] = cat["cat_l3"]
+                # Barcode
+                barcode = prod_json["attribute_show"][0]["val"]
+                row["barcode"] = barcode
+                # Brand
+                brand = prod_json["brand"]["name"]
+                row["brand"] = brand
+                # Manufacturer
+                manu = prod_json["attribute_show"][3]["val"]
+                row["manufacturer"] = manu if manu != False else ""
+                # Attribute
+                try:
+                    attribute_list = prod_json["attribute"]
+                    attribute_list = attribute_list["items"]
+                except TypeError:
+                    attribute_list = ""
+                if attribute_list != "":
+                    attr_check = [a["code"] for a in attribute_list]
+                    # Capacity
+                    if "capacity" in attr_check:
+                        for i in attribute_list:
+                            if i["code"] == "capacity":
+                                for o in i["options"]:
+                                    id_list = [l["id"] for l in o["products"]]
+                                    if item in id_list:
+                                        row["capacity"] = o["long_label"]
+                                        break
+                    else:
+                        row["capacity"] = ""
+                    # Effect
+                    if "effect" in attr_check:
+                        for i in attribute_list:
+                            if i["code"] == "effect":
+                                for o in i["options"]:
+                                    id_list = [l["id"] for l in o["products"]]
+                                    if item in id_list:
+                                        row["effect"] = o["long_label"]
+                                        break
+                    else:
+                        row["effect"] = ""
+                else:
+                    row["capacity"] = ""
+                    row["effect"] = ""
+                price = prod_json["price"]
+                row["price"] = price
+                # Source
+                row["source"] = "hasaki.vn"
+                # Link
                 row["href"] = prod_json["url"]
                 self.OBSERVATION += 1
                 self.wr.write_data(row)
